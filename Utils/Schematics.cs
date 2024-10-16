@@ -5,8 +5,8 @@ namespace AdminBot.Net.Utils
     public struct ConfigSchematics(
         string HttpServerUrl,
         string HttpPostUrl,
-        List<string> GroupId,
-        List<string> Commander,
+        List<long> GroupId,
+        List<long> Commander,
         List<string> DisabledCommand,
         string CommandPrefix
         )
@@ -15,9 +15,9 @@ namespace AdminBot.Net.Utils
 
         public string HttpPostUrl = HttpPostUrl;
 
-        public List<string> GroupId = GroupId;
+        public List<long> GroupId = GroupId;
 
-        public List<string> Commander = Commander;
+        public List<long> Commander = Commander;
 
         public List<string> DisabledCommand = DisabledCommand;
 
@@ -27,30 +27,24 @@ namespace AdminBot.Net.Utils
     public struct ArgSchematics(
         string Command,
         List<string> Param,
-        string CallerUin,
+        long CallerUin,
         int CallerPermissionLevel,
-        string GroupId,
-        string MsgId,
-        bool Status//,
-        //string TargetUin = "",
-        //int TargetPermissionLevel = 0
+        long GroupId,
+        int MsgId,
+        bool Status
         )
     {
         public string Command = Command;
 
         public List<string> Param = Param;
 
-        public string CallerUin = CallerUin;
+        public long CallerUin = CallerUin;
 
         public int CallerPermissionLevel = CallerPermissionLevel;
 
-        //public string TargetUin = TargetUin;
+        public long GroupId = GroupId;
 
-        //public int TargetPermissionLevel = TargetPermissionLevel;
-
-        public string GroupId = GroupId;
-
-        public string MsgId = MsgId;
+        public int MsgId = MsgId;
 
         public bool Status = Status;
     }

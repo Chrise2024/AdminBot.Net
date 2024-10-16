@@ -140,9 +140,9 @@ namespace AdminBot.Net.Command
                     else if (Args.Command.Equals("listop"))
                     {
                         //ParamFormat: Any
-                        List<string> OPList = Program.GetOPManager().GetOPList(Args.GroupId);
+                        List<long> OPList = Program.GetOPManager().GetOPList(Args.GroupId);
                         string OutString = "";
-                        foreach (string OPUin in OPList)
+                        foreach (int OPUin in OPList)
                         {
                             JObject Member = HttpApi.GetGroupMember(Args.GroupId, OPUin);
                             if (Member.Value<string>("group_id")?.Length > 0)
@@ -157,7 +157,8 @@ namespace AdminBot.Net.Command
                         //Param Format: [TargetUin , Duration]
                         if (Args.Param.Count > 1)
                         {
-                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, Args.Param[0]);
+                            string TargetUin = Args.Param[0];
+                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
@@ -175,7 +176,7 @@ namespace AdminBot.Net.Command
                             }
                             else
                             {
-                                HttpApi.SetGroupBan(Args.GroupId, Args.Param[0], duration);
+                                HttpApi.SetGroupBan(Args.GroupId, TargetUin, duration);
                             }
                         }
                         else
@@ -188,7 +189,8 @@ namespace AdminBot.Net.Command
                         //Param Format: [TargetUin]
                         if (Args.Param.Count > 0)
                         {
-                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, Args.Param[0]);
+                            string TargetUin = Args.Param[0];
+                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>"); ;
@@ -201,7 +203,7 @@ namespace AdminBot.Net.Command
                             }
                             else
                             {
-                                HttpApi.GroupKick(Args.GroupId, Args.Param[0]);
+                                HttpApi.GroupKick(Args.GroupId, TargetUin);
                             }
                         }
                         else
@@ -214,7 +216,7 @@ namespace AdminBot.Net.Command
                         //Param Format: [TargetMsgId]
                         if (Args.Param.Count > 0)
                         {
-                            JObject TargetMsg = HttpApi.GetMsg(Args.Param[0]);
+                            JObject TargetMsg = HttpApi.GetMsg(Int32.TryParse(Args.Param[0], out int TargetMsgId) ? TargetMsgId : 0);
                             if (!(TargetMsg.Value<string>("message_id")?.Length > 0))
                             {
                                 ExecuteLogger.Error($"Invalid MsgId: {Args.Param[0]}, At Command <{Args.Command}>"); ;
@@ -222,7 +224,7 @@ namespace AdminBot.Net.Command
                             }
                             else
                             {
-                                string TargetUin = TargetMsg.Value<JObject>("sender")?.Value<string>("user_id") ?? "";
+                                long TargetUin = TargetMsg.Value<JObject>("sender")?.Value<int>("user_id") ?? 0;
                                 TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
                                 if (TargetPermissionLevel == -1)
                                 {
@@ -236,7 +238,7 @@ namespace AdminBot.Net.Command
                                 }
                                 else
                                 {
-                                    HttpApi.RecallGroupMsg(Args.Param[0]);
+                                    HttpApi.RecallGroupMsg(TargetMsgId);
                                     HttpApi.RecallGroupMsg(Args.MsgId);
                                 }
                             }
@@ -251,7 +253,8 @@ namespace AdminBot.Net.Command
                         //Param Format: [TargetUin , Title]
                         if (Args.Param.Count > 1)
                         {
-                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, Args.Param[0]);
+                            string TargetUin = Args.Param[0];
+                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
@@ -264,7 +267,7 @@ namespace AdminBot.Net.Command
                             }
                             else
                             {
-                                HttpApi.SetGroupSpecialTitle(Args.GroupId, Args.Param[0], Args.Param[1]);
+                                HttpApi.SetGroupSpecialTitle(Args.GroupId, TargetUin, Args.Param[1]);
                             }
                         }
                         else
@@ -277,7 +280,8 @@ namespace AdminBot.Net.Command
                         //Param Format: [TargetUin]
                         if (Args.Param.Count > 0)
                         {
-                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, Args.Param[0]);
+                            string TargetUin = Args.Param[0];
+                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
@@ -295,10 +299,10 @@ namespace AdminBot.Net.Command
                             }
                             else
                             {
-                                int ret = Program.GetOPManager().AddOP(Args.GroupId, Args.Param[0]);
+                                int ret = Program.GetOPManager().AddOP(Args.GroupId, TargetUin);
                                 if (ret == 200)
                                 {
-                                    HttpApi.SendPlainMsg(Args.GroupId, string.Format("已将<{0}>设为群管", Args.Param[0]));
+                                    HttpApi.SendPlainMsg(Args.GroupId, string.Format("已将<{0}>设为群管", TargetUin));
                                 }
                             }
                         }
@@ -312,7 +316,8 @@ namespace AdminBot.Net.Command
                         //Param Format: [TargetUin]
                         if (Args.Param.Count > 0)
                         {
-                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, Args.Param[0]);
+                            string TargetUin = Args.Param[0];
+                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
@@ -330,7 +335,7 @@ namespace AdminBot.Net.Command
                             }
                             else
                             {
-                                int ret = Program.GetOPManager().RemoveOP(Args.GroupId, Args.Param[0]);
+                                int ret = Program.GetOPManager().RemoveOP(Args.GroupId, TargetUin);
                                 if (ret == 200)
                                 {
                                     HttpApi.SendPlainMsg(Args.GroupId, $"已取消<{Args.Param[0]}>群管身份");
@@ -347,7 +352,8 @@ namespace AdminBot.Net.Command
                         //Param Format: [TargetUin]
                         if (Args.Param.Count > 0)
                         {
-                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, Args.Param[0]);
+                            string TargetUin = Args.Param[0];
+                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
@@ -360,7 +366,7 @@ namespace AdminBot.Net.Command
                             }
                             else
                             {
-                                HttpApi.SetGroupAdmin(Args.GroupId, Args.Param[0], true);
+                                HttpApi.SetGroupAdmin(Args.GroupId, TargetUin, true);
                             }
                         }
                     }
@@ -369,7 +375,8 @@ namespace AdminBot.Net.Command
                         //Param Format: [TargetUin]
                         if (Args.Param.Count > 0)
                         {
-                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, Args.Param[0]);
+                            string TargetUin = Args.Param[0];
+                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
@@ -382,7 +389,7 @@ namespace AdminBot.Net.Command
                             }
                             else
                             {
-                                HttpApi.SetGroupAdmin(Args.GroupId, Args.Param[0], false);
+                                HttpApi.SetGroupAdmin(Args.GroupId, TargetUin, false);
                             }
                         }
                     }

@@ -30,10 +30,10 @@ namespace AdminBot.Net.Utils
             {
             ""type"": ""object"",
             ""properties"": {
-                    ""HttpServerUrl"": { ""type"": ""string"" },
-                    ""HttpPostUrl"": { ""type"": ""string"" },
-                    ""GroupId"": { ""type"": ""array"", ""items"": { ""type"": ""string"" } },
-                    ""Commander"": { ""type"": ""array"", ""items"": { ""type"": ""string"" } },
+                    ""HttpServerUrl"": { ""type"": ""string"" , ""format"": ""uri"" },
+                    ""HttpPostUrl"": { ""type"": ""string"" , ""format"": ""uri"" },
+                    ""GroupId"": { ""type"": ""array"", ""items"": { ""type"": ""integer"" } },
+                    ""Commander"": { ""type"": ""array"", ""items"": { ""type"": ""integer"" } },
                     ""DisabledCommand"": { ""type"": ""array"", ""items"": { ""type"": ""string"" } },
                     ""CommandPrefix"": { ""type"": ""string"" }
                 },
@@ -45,7 +45,7 @@ namespace AdminBot.Net.Utils
 
         private ConfigSchematics Config;
 
-        private readonly ConfigSchematics DefaultConfig = new("http://127.0.0.1:8089/", "http://127.0.0.1:8088/", [], [], [],"/");
+        private readonly ConfigSchematics DefaultConfig = new("http://127.0.0.1:8089/", "http://127.0.0.1:8088", [], [], [],"/");
 
         /*
          * 8089为Bot上报消息的Url，即当前程序开启的Http Server地址
@@ -81,7 +81,7 @@ namespace AdminBot.Net.Utils
         {
             return Config.HttpPostUrl;
         }
-        public List<string> GetGroupList()
+        public List<long> GetGroupList()
         {
             return Config.GroupId;
         }
@@ -89,7 +89,7 @@ namespace AdminBot.Net.Utils
         {
             return DefaultCommands;
         }
-        public List<string> GetCommanderList()
+        public List<long> GetCommanderList()
         {
             return Config.Commander;
         }
@@ -148,7 +148,7 @@ namespace AdminBot.Net.Utils
 
         private readonly string OPListPath = Path.Join(Program.GetProgramRoot(), "OPList.json");
 
-        private Dictionary<string, List<string>> OPList = [];
+        private Dictionary<long, List<long>> OPList = [];
 
         public OPManager()
         {
@@ -162,7 +162,7 @@ namespace AdminBot.Net.Utils
                 
                 try
                 {
-                    OPList = FileIO.ReadAsJSON<Dictionary<string, List<string>>>(OPListPath);
+                    OPList = FileIO.ReadAsJSON<Dictionary<long, List<long>>>(OPListPath);
                 }
                 catch
                 {
@@ -171,7 +171,7 @@ namespace AdminBot.Net.Utils
                 }
             }
         }
-        public List<string> GetOPList(string TargetGroupId)
+        public List<long> GetOPList(long TargetGroupId)
         {
             if (OPList.TryGetValue(TargetGroupId, out var list))
             {
@@ -182,7 +182,7 @@ namespace AdminBot.Net.Utils
                 return [];
             }
         }
-        public int AddOP(string TargetGroupId, string TargetUin)
+        public int AddOP(long TargetGroupId, long TargetUin)
         {
             if (OPList.TryGetValue(TargetGroupId, out var list))
             {
@@ -203,7 +203,29 @@ namespace AdminBot.Net.Utils
                 return 200;
             }
         }
-        public int RemoveOP(string TargetGroupId, string TargetUin)
+        public int AddOP(long TargetGroupId, string StrTargetUin)
+        {
+            long TargetUin = Int64.Parse(StrTargetUin);
+            if (OPList.TryGetValue(TargetGroupId, out var list))
+            {
+                if (!list.Contains(TargetUin))
+                {
+                    list.Add(TargetUin);
+                    SaveOPList();
+                    return 200;
+                }
+                else
+                {
+                    return 418;
+                }
+            }
+            else
+            {
+                OPList.Add(TargetGroupId, [TargetUin]);
+                return 200;
+            }
+        }
+        public int RemoveOP(long TargetGroupId, long TargetUin)
         {
             if (OPList.TryGetValue(TargetGroupId, out var list))
             {
@@ -222,7 +244,27 @@ namespace AdminBot.Net.Utils
                 return 404;
             }
         }
-        public bool IsOP(string TargetGroupId, string TargetUin)
+        public int RemoveOP(long TargetGroupId, string StrTargetUin)
+        {
+            long TargetUin = Int64.Parse(StrTargetUin);
+            if (OPList.TryGetValue(TargetGroupId, out var list))
+            {
+                if (list.Remove(TargetUin))
+                {
+                    SaveOPList();
+                    return 200;
+                }
+                else
+                {
+                    return 400;
+                }
+            }
+            else
+            {
+                return 404;
+            }
+        }
+        public bool IsOP(long TargetGroupId, long TargetUin)
         {
             if (OPList.TryGetValue(TargetGroupId,out var list))
             {
@@ -233,9 +275,21 @@ namespace AdminBot.Net.Utils
                 return false;
             }
         }
+        public bool IsOP(long TargetGroupId, string StrTargetUin)
+        {
+            long TargetUin = Int64.Parse(StrTargetUin);
+            if (OPList.TryGetValue(TargetGroupId, out var list))
+            {
+                return list.Contains(TargetUin);
+            }
+            else
+            {
+                return false;
+            }
+        }
         private void SaveOPList()
         {
-            FileIO.WriteAsJSON<Dictionary<string, List<string>>>(OPListPath, OPList);
+            FileIO.WriteAsJSON<Dictionary<long, List<long>>>(OPListPath, OPList);
         }
     }
 }

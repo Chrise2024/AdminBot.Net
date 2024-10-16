@@ -29,7 +29,10 @@ namespace AdminBot.Net
             HttpListener httpListener = new HttpListener();
             httpListener.Prefixes.Add(MainConfigManager.GetHttpServerUrl());
             httpListener.Start();
-            httpListener.BeginGetContext(new AsyncCallback(GetContextCallBack), httpListener);
+            Task.Run(() =>
+            {
+                httpListener.BeginGetContext(new AsyncCallback(GetContextCallBack), httpListener);
+            });
             Console.WriteLine("Launched");
             string TempString;
             while (true)

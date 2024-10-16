@@ -74,7 +74,7 @@ namespace AdminBot.Net.Utils
         [GeneratedRegex(@"\[CQ:at,qq=\d+\S*\]")]
         public static partial Regex GetCQAtRegex();
 
-        [GeneratedRegex(@"^\[CQ:reply,id=\d+\]")]
+        [GeneratedRegex(@"^\[CQ:reply,id=[-]*\d+\]")]
         public static partial Regex GetCQReplyRegex();
 
         [GeneratedRegex(@"\d+")]
