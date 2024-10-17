@@ -25,11 +25,11 @@ namespace AdminBot.Net.Command
             { "disable" , string.Format("---------------help---------------\n权限等级3\n{0}disable - 禁用指令\n使用方法：{0}disable 指令名(无前缀)\ne.g. {0}disable ban",CommandPrefix) },
             //{ "" , string.Format("",CommandPrefix) },
         };
-        public static bool PrintHelpText(long GroupId,string Command)
+        public static async Task<bool> PrintHelpText(long GroupId, string Command)
         {
-            if (HelpTextReference.TryGetValue(Command,out var txt))
+            if (HelpTextReference.TryGetValue(Command, out var txt))
             {
-                HttpApi.SendPlainMsg(GroupId, txt);
+                await HttpApi.SendPlainMsg(GroupId, txt);
                 return true;
             }
             else

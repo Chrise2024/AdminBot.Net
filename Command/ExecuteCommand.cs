@@ -17,7 +17,7 @@ namespace AdminBot.Net.Command
 
         private static readonly List<string> AvaliableCommands = Program.GetConfigManager().GetCommandList();
 
-        public static void Execute(ArgSchematics Args)
+        public static async void Execute(ArgSchematics Args)
         {
             if (AvaliableCommands.Contains(Args.Command))
             {
@@ -31,7 +31,7 @@ namespace AdminBot.Net.Command
                         //ParamFormat: [<Command>]
                         if (Args.Param.Count > 0)
                         {
-                            if (!HelpCommand.PrintHelpText(Args.GroupId, Args.Param[0]))
+                            if (!await HelpCommand.PrintHelpText(Args.GroupId, Args.Param[0]))
                             {
                                 ExecuteLogger.Error($"Unknown Command: <{Args.Param[0]}>, At Command <{Args.Command}>");
                                 return;
@@ -39,7 +39,7 @@ namespace AdminBot.Net.Command
                         }
                         else
                         {
-                            HelpCommand.PrintHelpText(Args.GroupId, "help");
+                            _ = await HelpCommand.PrintHelpText(Args.GroupId, "help");
                         }
                     }
                     else if (Args.Command.Equals("symmet"))
@@ -60,11 +60,11 @@ namespace AdminBot.Net.Command
                             else
                             {
                                 //[MsgId] [Pattern]
-                                JObject TargetMsg = HttpApi.GetMsg(Args.Param[0]);
+                                JObject TargetMsg = await HttpApi.GetMsg(Args.Param[0]);
                                 if (!(TargetMsg.Value<string>("message_id")?.Length > 0))
                                 {
                                     ExecuteLogger.Error($"Invalid MsgId: {Args.Param[0]}, At Command <{Args.Command}>"); ;
-                                    HttpApi.SendPlainMsg(Args.GroupId, "无效的Msg");
+                                    await HttpApi.SendPlainMsg(Args.GroupId, "无效的Msg");
                                 }
                                 else
                                 {
@@ -84,13 +84,14 @@ namespace AdminBot.Net.Command
                                     if (ResultImage.Count > 0)
                                     {
                                         ResultImage.Write(ImCachePath);
-                                        HttpApi.SendImageMsg(Args.GroupId, ImCachePath, "LocalFile");
+                                        await HttpApi.SendImageMsgWithReply(Args.GroupId,Args.MsgId, ImCachePath, ImageSendType.LocalFile);
+                                        //await HttpApi.SendImageMsg(Args.GroupId, ImCachePath, ImageSendType.LocalFile);
                                         FileIO.SafeDeleteFile(ImCachePath);
                                     }
                                     else
                                     {
                                         ExecuteLogger.Error($"Pic Convert Failed, At Command <{Args.Command}>");
-                                        HttpApi.SendPlainMsg(Args.GroupId, "转换失败");
+                                        await HttpApi.SendPlainMsg(Args.GroupId, "转换失败");
                                     }
                                     ResultImage.Dispose();
                                 }
@@ -101,13 +102,14 @@ namespace AdminBot.Net.Command
                                     if (ResultImage != null)
                                     {
                                         ResultImage.Save(ImCachePath,ImageFormat.Gif);
-                                        HttpApi.SendImageMsg(Args.GroupId, ImCachePath, "LocalFile");
+                                        await HttpApi.SendImageMsgWithReply(Args.GroupId, Args.MsgId, ImCachePath, ImageSendType.LocalFile);
+                                        //await HttpApi.SendImageMsg(Args.GroupId, ImCachePath, ImageSendType.LocalFile);
                                         FileIO.SafeDeleteFile(ImCachePath);
                                     }
                                     else
                                     {
                                         ExecuteLogger.Error($"Pic Convert Failed, At Command <{Args.Command}>");
-                                        HttpApi.SendPlainMsg(Args.GroupId, "转换失败");
+                                        await HttpApi.SendPlainMsg(Args.GroupId, "转换失败");
                                     }
                                     ResultImage?.Dispose();
                                 }
@@ -135,22 +137,22 @@ namespace AdminBot.Net.Command
                     else if (Args.Command.Equals("permission"))
                     {
                         //ParamFormat: Any
-                        HttpApi.SendPlainMsg(Args.GroupId, $"<{Args.CallerUin}>权限等级为 {Args.CallerPermissionLevel}");
+                        await HttpApi.SendPlainMsg(Args.GroupId, $"<{Args.CallerUin}>权限等级为 {Args.CallerPermissionLevel}");
                     }
                     else if (Args.Command.Equals("listop"))
                     {
                         //ParamFormat: Any
                         List<long> OPList = Program.GetOPManager().GetOPList(Args.GroupId);
                         string OutString = "";
-                        foreach (int OPUin in OPList)
+                        foreach (long OPUin in OPList)
                         {
-                            JObject Member = HttpApi.GetGroupMember(Args.GroupId, OPUin);
+                            JObject Member = await HttpApi.GetGroupMember(Args.GroupId, OPUin);
                             if (Member.Value<string>("group_id")?.Length > 0)
                             {
                                 OutString += $"{Member.Value<string>("nickname")} <{OPUin}>,";
                             }
                         }
-                        HttpApi.SendPlainMsg(Args.GroupId, OutString.Length > 0 ? OutString : "No OPs");
+                        await HttpApi.SendPlainMsg(Args.GroupId, OutString.Length > 0 ? OutString : "No OPs");
                     }
                     else if (Args.Command.Equals("ban"))
                     {
@@ -158,21 +160,21 @@ namespace AdminBot.Net.Command
                         if (Args.Param.Count > 1)
                         {
                             string TargetUin = Args.Param[0];
-                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
+                            TargetPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
                             }
                             else if (Args.CallerPermissionLevel <= TargetPermissionLevel)
                             {
                                 ExecuteLogger.Warn($"Not Enough Permission: {Args.CallerPermissionLevel} Compare to {TargetPermissionLevel}, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
                             }
                             else if (!int.TryParse(Args.Param[1], out var duration))
                             {
                                 ExecuteLogger.Error($"Invalid Duration: {Args.Param[0]}, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, $"无效的时长: {Args.Param[1]}");
+                                await HttpApi.SendPlainMsg(Args.GroupId, $"无效的时长: {Args.Param[1]}");
                             }
                             else
                             {
@@ -190,16 +192,16 @@ namespace AdminBot.Net.Command
                         if (Args.Param.Count > 0)
                         {
                             string TargetUin = Args.Param[0];
-                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
+                            TargetPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>"); ;
-                                HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
                             }
                             else if (Args.CallerPermissionLevel <= TargetPermissionLevel)
                             {
                                 ExecuteLogger.Warn($"Not Enough Permission: {Args.CallerPermissionLevel} Compare to {TargetPermissionLevel}, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
                             }
                             else
                             {
@@ -216,25 +218,25 @@ namespace AdminBot.Net.Command
                         //Param Format: [TargetMsgId]
                         if (Args.Param.Count > 0)
                         {
-                            JObject TargetMsg = HttpApi.GetMsg(Int32.TryParse(Args.Param[0], out int TargetMsgId) ? TargetMsgId : 0);
+                            JObject TargetMsg = await HttpApi.GetMsg(Int32.TryParse(Args.Param[0], out int TargetMsgId) ? TargetMsgId : 0);
                             if (!(TargetMsg.Value<string>("message_id")?.Length > 0))
                             {
                                 ExecuteLogger.Error($"Invalid MsgId: {Args.Param[0]}, At Command <{Args.Command}>"); ;
-                                HttpApi.SendPlainMsg(Args.GroupId, "无效的Msg");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "无效的Msg");
                             }
                             else
                             {
                                 long TargetUin = TargetMsg.Value<JObject>("sender")?.Value<int>("user_id") ?? 0;
-                                TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
+                                TargetPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
                                 if (TargetPermissionLevel == -1)
                                 {
                                     ExecuteLogger.Error($"Invalid Target: {TargetUin}, At Command <{Args.Command}>"); ;
-                                    HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
+                                    await HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
                                 }
                                 else if (Args.CallerPermissionLevel <= TargetPermissionLevel)
                                 {
                                     ExecuteLogger.Warn($"Not Enough Permission: {Args.CallerPermissionLevel} Compare to {TargetPermissionLevel}, At Command <{Args.Command}>");
-                                    HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
+                                    await HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
                                 }
                                 else
                                 {
@@ -254,16 +256,16 @@ namespace AdminBot.Net.Command
                         if (Args.Param.Count > 1)
                         {
                             string TargetUin = Args.Param[0];
-                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
+                            TargetPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
                             }
                             else if (Args.CallerPermissionLevel <= TargetPermissionLevel)
                             {
                                 ExecuteLogger.Warn($"Not Enough Permission: {Args.CallerPermissionLevel} Compare to {TargetPermissionLevel}, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
                             }
                             else
                             {
@@ -281,28 +283,28 @@ namespace AdminBot.Net.Command
                         if (Args.Param.Count > 0)
                         {
                             string TargetUin = Args.Param[0];
-                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
+                            TargetPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
                             }
                             else if (Args.CallerPermissionLevel < 2)
                             {
                                 ExecuteLogger.Warn($"Not Enough Permission: {Args.CallerPermissionLevel} Compare to 2, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
                             }
                             else if (TargetPermissionLevel > 1)
                             {
                                 ExecuteLogger.Warn($"Target Already Have Higher Permission Level: {TargetPermissionLevel}, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "对方已有更高权限等级");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "对方已有更高权限等级");
                             }
                             else
                             {
                                 int ret = Program.GetOPManager().AddOP(Args.GroupId, TargetUin);
                                 if (ret == 200)
                                 {
-                                    HttpApi.SendPlainMsg(Args.GroupId, string.Format("已将<{0}>设为群管", TargetUin));
+                                    await HttpApi.SendPlainMsg(Args.GroupId, string.Format("已将<{0}>设为群管", TargetUin));
                                 }
                             }
                         }
@@ -317,28 +319,28 @@ namespace AdminBot.Net.Command
                         if (Args.Param.Count > 0)
                         {
                             string TargetUin = Args.Param[0];
-                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
+                            TargetPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
                             }
                             else if (Args.CallerPermissionLevel < 2)
                             {
                                 ExecuteLogger.Warn($"Not Enough Permission: {Args.CallerPermissionLevel} Compare to 2, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
                             }
                             else if (TargetPermissionLevel > 1)
                             {
                                 ExecuteLogger.Warn($"Target Already Have Higher Permission Level: {TargetPermissionLevel}, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "对方已有更高权限等级");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "对方已有更高权限等级");
                             }
                             else
                             {
                                 int ret = Program.GetOPManager().RemoveOP(Args.GroupId, TargetUin);
                                 if (ret == 200)
                                 {
-                                    HttpApi.SendPlainMsg(Args.GroupId, $"已取消<{Args.Param[0]}>群管身份");
+                                    await HttpApi.SendPlainMsg(Args.GroupId, $"已取消<{Args.Param[0]}>群管身份");
                                 }
                             }
                         }
@@ -353,16 +355,16 @@ namespace AdminBot.Net.Command
                         if (Args.Param.Count > 0)
                         {
                             string TargetUin = Args.Param[0];
-                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
+                            TargetPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
                             }
                             else if (Args.CallerPermissionLevel < 3)
                             {
                                 ExecuteLogger.Warn($"Not Enough Permission: {Args.CallerPermissionLevel} Compare to 3, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
                             }
                             else
                             {
@@ -376,16 +378,16 @@ namespace AdminBot.Net.Command
                         if (Args.Param.Count > 0)
                         {
                             string TargetUin = Args.Param[0];
-                            TargetPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
+                            TargetPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
                             }
                             else if (Args.CallerPermissionLevel < 3)
                             {
                                 ExecuteLogger.Warn($"Not Enough Permission: {Args.CallerPermissionLevel} Compare to 3, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
                             }
                             else
                             {
@@ -401,12 +403,12 @@ namespace AdminBot.Net.Command
                             if (!AvaliableCommands.Contains(Args.Param[0]))
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
                             }
                             else if (Args.CallerPermissionLevel < 3)
                             {
                                 ExecuteLogger.Warn($"Not Enough Permission: {Args.CallerPermissionLevel} Compare to 3, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
                             }
                             else
                             {
@@ -422,12 +424,12 @@ namespace AdminBot.Net.Command
                             if (!AvaliableCommands.Contains(Args.Param[0]))
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
                             }
                             else if (Args.CallerPermissionLevel < 3)
                             {
                                 ExecuteLogger.Warn($"Not Enough Permission: {Args.CallerPermissionLevel} Compare to 3, At Command <{Args.Command}>");
-                                HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
                             }
                             else
                             {
@@ -439,13 +441,13 @@ namespace AdminBot.Net.Command
                 }
                 else
                 {
-                    HttpApi.SendPlainMsg(Args.GroupId, string.Format("已禁用指令: <{0}>", Args.Command));
+                    await HttpApi.SendPlainMsg(Args.GroupId, string.Format("已禁用指令: <{0}>", Args.Command));
                 }
             }
             else
             {
                 ExecuteLogger.Error($"Unknown Command: <{Args.Command}>");
-                HttpApi.SendPlainMsg(Args.GroupId, $"未知指令: <{Args.Command}>");
+                await HttpApi.SendPlainMsg(Args.GroupId, $"未知指令: <{Args.Command}>");
             }
         }
     }

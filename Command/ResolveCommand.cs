@@ -21,13 +21,13 @@ namespace AdminBot.Net.Command
         private static readonly Logger ArgLogger = new("CommandResolver.ArgParse");
 
         private static readonly Logger HandleLogger = new("CommandResolver.HandleMsg");
-        private static ArgSchematics Parse(JObject MsgBody)
+        private static async Task<ArgSchematics> Parse(JObject MsgBody)
         {
             long GroupId = MsgBody.Value<int>("group_id");
             int CallerUin = MsgBody.Value<int>("user_id");
             int MsgId = (int)MsgBody.Value<int>("message_id");
             string CQString = MsgBody.Value<string>("raw_message") ?? "";
-            int CallerPermissionLevel = Program.GetPermissionManager().GetPermissionLevel(GroupId,CallerUin);
+            int CallerPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(GroupId,CallerUin);
             if (MsgId == 0 || CallerPermissionLevel == -1)
             {
                 ArgLogger.Error("Invalid Msg Body");
@@ -46,7 +46,6 @@ namespace AdminBot.Net.Command
                 {
                     CQEntitySchematics CQEntity = DecodeCQEntity(MatchCQReply.Value);
                     int TargetMsgId = Int32.Parse(CQEntity.Properties.TryGetValue("id", out var IntMsgId) ? IntMsgId : "0");
-                    Console.WriteLine(JsonConvert.SerializeObject(CQEntity));
                     string NormalCQString = CQString.Replace(MatchCQReply.Value, "").Trim();
                     if ( NormalCQString.StartsWith(CommandPrefix))
                     {
@@ -158,14 +157,14 @@ namespace AdminBot.Net.Command
             }
             return "";
         }
-        public static void HandleMsg(JObject MsgBody)
+        public static async void HandleMsg(JObject MsgBody)
         {
             if ((MsgBody.Value<string>("post_type")?.Equals("message") ?? false) &&
                 (MsgBody.Value<string>("message_type")?.Equals("group") ?? false) &&
                 WorkGRoup.Contains(MsgBody.Value<int>("group_id"))
                 )
             {
-                ArgSchematics Args = Parse(MsgBody);
+                ArgSchematics Args = await Parse(MsgBody);
                 if (Args.Status)
                 {
                     CommandExecutor.Execute(Args);

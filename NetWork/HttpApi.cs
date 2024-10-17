@@ -8,13 +8,19 @@ using AdminBot.Net;
 
 namespace AdminBot.Net.NetWork
 {
+    public enum ImageSendType
+    {
+        LocalFile = 0,
+        Url = 1,
+        Base64 = 2
+    }
     internal class HttpApi
     {
         private static readonly string HttpPostUrl = Program.GetConfigManager().GetHttpPostUrl();
 
         private static readonly HttpClient HClient = new();
 
-        public static void SendPlainMsg(long TargetGroupId,string MsgText)
+        public static async Task SendPlainMsg<T>(T TargetGroupId,string MsgText)
         {
             try
             {
@@ -31,7 +37,7 @@ namespace AdminBot.Net.NetWork
                     }
                 }
                 };
-                HClient.PostAsync(HttpPostUrl + "/send_group_msg",
+                await HClient.PostAsync(HttpPostUrl + "/send_group_msg",
                    new StringContent(
                        JsonConvert.SerializeObject(ReqJSON),
                        Encoding.UTF8,
@@ -41,12 +47,45 @@ namespace AdminBot.Net.NetWork
             }
             catch { }
         }
-        public static void SendImageMsg(long TargetGroupId, string ImageContent,string FileType = "LocalFile")
+        public static async Task SendReplyMsg<T1,T2>(T1 TargetGroupId,T2 ReplyMsgId, string MsgText)
+        {
+            try
+            {
+                object ReqJSON = new
+                {
+                    group_id = TargetGroupId,
+                    message = new List<object>()
+                {
+                    new {
+                        type = "reply",
+                        data = new {
+                            id = $"{ReplyMsgId}"
+                        }
+                    },
+                    new {
+                        type = "text",
+                        data = new {
+                            text = MsgText
+                        }
+                    }
+                }
+                };
+                await HClient.PostAsync(HttpPostUrl + "/send_group_msg",
+                   new StringContent(
+                       JsonConvert.SerializeObject(ReqJSON),
+                       Encoding.UTF8,
+                       "application/json"
+                   )
+                );
+            }
+            catch { }
+        }
+        public static async Task SendImageMsg<T>(T TargetGroupId, string ImageContent, ImageSendType ImageType = ImageSendType.LocalFile)
         {
             try
             {
                 object ReqJSON;
-                if (FileType.Equals("LocalFile"))
+                if (ImageType == ImageSendType.LocalFile)
                 {
                     ReqJSON = new
                     {
@@ -62,7 +101,7 @@ namespace AdminBot.Net.NetWork
                         }
                     };
                 }
-                else if (FileType.Equals("Url"))
+                else if (ImageType == ImageSendType.Url)
                 {
                     ReqJSON = new
                     {
@@ -78,7 +117,7 @@ namespace AdminBot.Net.NetWork
                         }
                     };
                 }
-                else if (FileType.Equals("Base64"))
+                else if (ImageType == ImageSendType.Base64)
                 {
                     ReqJSON = new
                     {
@@ -98,17 +137,102 @@ namespace AdminBot.Net.NetWork
                 {
                     return;
                 }
-                var _ = HClient.PostAsync(HttpPostUrl + "/send_group_msg",
+                await HClient.PostAsync(HttpPostUrl + "/send_group_msg",
                    new StringContent(
                        JsonConvert.SerializeObject(ReqJSON),
                        Encoding.UTF8,
                        "application/json"
                    )
-                ).Result;
+                );
             }
             catch { }
         }
-        public static void SetGroupBan(long TargetGroupId, long TargetUin,int Duration)
+        public static async Task SendImageMsgWithReply<T1,T2>(T1 TargetGroupId, T2 ReplyMsgId, string ImageContent, ImageSendType ImageType = ImageSendType.LocalFile)
+        {
+            try
+            {
+                object ReqJSON;
+                if (ImageType == ImageSendType.LocalFile)
+                {
+                    ReqJSON = new
+                    {
+                        group_id = TargetGroupId,
+                        message = new List<object>()
+                        {
+                            new {
+                                type = "reply",
+                                data = new {
+                                    id = $"{ReplyMsgId}"
+                                }
+                            },
+                            new {
+                                type = "image",
+                                data = new {
+                                    file = $"file:///{ImageContent}"
+                                }
+                            }
+                        }
+                    };
+                }
+                else if (ImageType == ImageSendType.Url)
+                {
+                    ReqJSON = new
+                    {
+                        group_id = TargetGroupId,
+                        message = new List<object>()
+                        {
+                            new {
+                                type = "reply",
+                                data = new {
+                                    id = $"{ReplyMsgId}"
+                                }
+                            },
+                            new {
+                                type = "image",
+                                data = new {
+                                    file = ImageContent
+                                }
+                            }
+                        }
+                    };
+                }
+                else if (ImageType == ImageSendType.Base64)
+                {
+                    ReqJSON = new
+                    {
+                        group_id = TargetGroupId,
+                        message = new List<object>()
+                        {
+                            new {
+                                type = "reply",
+                                data = new {
+                                    id = $"{ReplyMsgId}"
+                                }
+                            },
+                            new {
+                                type = "image",
+                                data = new {
+                                    file = $"base64://{ImageContent}"
+                                }
+                            }
+                        }
+                    };
+                }
+                else
+                {
+                    return;
+                }
+                await HClient.PostAsync(HttpPostUrl + "/send_group_msg",
+                   new StringContent(
+                       JsonConvert.SerializeObject(ReqJSON),
+                       Encoding.UTF8,
+                       "application/json"
+                   )
+                );
+            }
+            catch { }
+        }
+        public static async void SetGroupBan<T1, T2>(T1 TargetGroupId, T2 TargetUin,int Duration)
         {
             try
             {
@@ -118,7 +242,7 @@ namespace AdminBot.Net.NetWork
                     user_id = TargetUin,
                     duration = Duration
                 };
-                HClient.PostAsync(HttpPostUrl + "/set_group_ban",
+                await HClient.PostAsync(HttpPostUrl + "/set_group_ban",
                    new StringContent(
                        JsonConvert.SerializeObject(ReqJSON),
                        Encoding.UTF8,
@@ -128,27 +252,7 @@ namespace AdminBot.Net.NetWork
             }
             catch { }
         }
-        public static void SetGroupBan(long TargetGroupId, string TargetUin, int Duration)
-        {
-            try
-            {
-                object ReqJSON = new
-                {
-                    group_id = TargetGroupId,
-                    user_id = TargetUin,
-                    duration = Duration
-                };
-                HClient.PostAsync(HttpPostUrl + "/set_group_ban",
-                   new StringContent(
-                       JsonConvert.SerializeObject(ReqJSON),
-                       Encoding.UTF8,
-                       "application/json"
-                   )
-                );
-            }
-            catch { }
-        }
-        public static void GroupKick(long TargetGroupId, long TargetUin,bool PermReject = false)
+        public static async void GroupKick<T1, T2>(T1 TargetGroupId, T2 TargetUin, bool PermReject = false)
         {
             try
             {
@@ -158,7 +262,7 @@ namespace AdminBot.Net.NetWork
                     user_id = TargetUin,
                     reject_add_request = PermReject
                 };
-                HClient.PostAsync(HttpPostUrl + "/set_group_kick",
+                await HClient.PostAsync(HttpPostUrl + "/set_group_kick",
                    new StringContent(
                        JsonConvert.SerializeObject(ReqJSON),
                        Encoding.UTF8,
@@ -168,17 +272,15 @@ namespace AdminBot.Net.NetWork
             }
             catch { }
         }
-        public static void GroupKick(long TargetGroupId, string TargetUin, bool PermReject = false)
+        public static async void RecallGroupMsg<T>(T MsgId)
         {
             try
             {
                 object ReqJSON = new
                 {
-                    group_id = TargetGroupId,
-                    user_id = TargetUin,
-                    reject_add_request = PermReject
+                    message_id = MsgId
                 };
-                HClient.PostAsync(HttpPostUrl + "/set_group_kick",
+                await HClient.PostAsync(HttpPostUrl + "/delete_msg",
                    new StringContent(
                        JsonConvert.SerializeObject(ReqJSON),
                        Encoding.UTF8,
@@ -188,28 +290,7 @@ namespace AdminBot.Net.NetWork
             }
             catch { }
         }
-        public static void RecallGroupMsg(int MsgId,long TargetGroupId = 0, int CurrentUin = 0)
-        {
-            if (MsgId != 0)
-            {
-                try
-                {
-                    object ReqJSON = new
-                    {
-                        message_id = MsgId
-                    };
-                    HClient.PostAsync(HttpPostUrl + "/delete_msg",
-                       new StringContent(
-                           JsonConvert.SerializeObject(ReqJSON),
-                           Encoding.UTF8,
-                           "application/json"
-                       )
-                    );
-                }
-                catch { }
-            }
-        }
-        public static void SetGroupSpecialTitle(long TargetGroupId, long TargetUin, string Title)
+        public static async void SetGroupSpecialTitle<T1, T2>(T1 TargetGroupId, T2 TargetUin, string Title)
         {
             try
             {
@@ -219,7 +300,7 @@ namespace AdminBot.Net.NetWork
                     user_id = TargetUin,
                     special_title = Title
                 };
-                HClient.PostAsync(HttpPostUrl + "/set_group_special_title",
+                await HClient.PostAsync(HttpPostUrl + "/set_group_special_title",
                    new StringContent(
                        JsonConvert.SerializeObject(ReqJSON),
                        Encoding.UTF8,
@@ -229,27 +310,7 @@ namespace AdminBot.Net.NetWork
             }
             catch { }
         }
-        public static void SetGroupSpecialTitle(long TargetGroupId, string TargetUin, string Title)
-        {
-            try
-            {
-                object ReqJSON = new
-                {
-                    group_id = TargetGroupId,
-                    user_id = TargetUin,
-                    special_title = Title
-                };
-                HClient.PostAsync(HttpPostUrl + "/set_group_special_title",
-                   new StringContent(
-                       JsonConvert.SerializeObject(ReqJSON),
-                       Encoding.UTF8,
-                       "application/json"
-                   )
-                );
-            }
-            catch { }
-        }
-        public static void SetGroupAdmin(long TargetGroupId, long TargetUin, bool Enable)
+        public static async void SetGroupAdmin<T1,T2>(T1 TargetGroupId, T2 TargetUin, bool Enable)
         {
             try
             {
@@ -259,7 +320,7 @@ namespace AdminBot.Net.NetWork
                     user_id = TargetUin,
                     enable = Enable
                 };
-                HClient.PostAsync(HttpPostUrl + "/set_group_admin",
+                await HClient.PostAsync(HttpPostUrl + "/set_group_admin",
                    new StringContent(
                        JsonConvert.SerializeObject(ReqJSON),
                        Encoding.UTF8,
@@ -269,118 +330,30 @@ namespace AdminBot.Net.NetWork
             }
             catch { }
         }
-        public static void SetGroupAdmin(long TargetGroupId, string TargetUin, bool Enable)
+        public static async Task<JObject> GetMsg<T>(T MsgId)
         {
             try
             {
                 object ReqJSON = new
                 {
-                    group_id = TargetGroupId,
-                    user_id = TargetUin,
-                    enable = Enable
+                    message_id = MsgId
                 };
-                HClient.PostAsync(HttpPostUrl + "/set_group_admin",
+                HttpResponseMessage response = await HClient.PostAsync(HttpPostUrl + "/get_msg",
                    new StringContent(
                        JsonConvert.SerializeObject(ReqJSON),
                        Encoding.UTF8,
                        "application/json"
                    )
                 );
-            }
-            catch { }
-        }
-        public static JObject GetMsg(int MsgId)
-        {
-            if ( MsgId == 0)
-            {
-                return JObject.Parse(@"{""message_id"":0}");
-            }
-            else
-            {
-                try
-                {
-                    object ReqJSON = new
-                    {
-                        message_id = MsgId
-                    };
-                    HttpResponseMessage response = HClient.PostAsync(HttpPostUrl + "/get_msg",
-                       new StringContent(
-                           JsonConvert.SerializeObject(ReqJSON),
-                           Encoding.UTF8,
-                           "application/json"
-                       )
-                    ).Result;
-                    return JObject.Parse(response.Content.ReadAsStringAsync().Result)["data"]?.ToObject<JObject>() ?? JObject.Parse(@"{""message_id"":0}");
-                }
-                catch
-                {
-                    return JObject.Parse(@"{""message_id"":0}");
-                }
-            }
-        }
-        public static JObject GetMsg(string MsgId)
-        {
-            if (MsgId.Length == 0)
-            {
-                return JObject.Parse(@"{""message_id"":0}");
-            }
-            else
-            {
-                try
-                {
-                    object ReqJSON = new
-                    {
-                        message_id = MsgId
-                    };
-                    HttpResponseMessage response = HClient.PostAsync(HttpPostUrl + "/get_msg",
-                       new StringContent(
-                           JsonConvert.SerializeObject(ReqJSON),
-                           Encoding.UTF8,
-                           "application/json"
-                       )
-                    ).Result;
-                    return JObject.Parse(response.Content.ReadAsStringAsync().Result)["data"]?.ToObject<JObject>() ?? JObject.Parse(@"{""message_id"":0}");
-                }
-                catch
-                {
-                    return JObject.Parse(@"{""message_id"":0}");
-                }
-            }
-        }
-        public static JObject GetGroupMember(long TargetGroupId, long TargetUin)
-        {
-            if (TargetGroupId == 0 || TargetUin == 0)
-            {
-                return JObject.Parse(@"{""group_id"":0}");
-            }
-            try
-            {
-                object ReqJSON = new
-                {
-                    group_id = TargetGroupId,
-                    user_id = TargetUin,
-                    no_cache = false
-                };
-                HttpResponseMessage response = HClient.PostAsync(HttpPostUrl + "/get_group_member_info",
-                   new StringContent(
-                       JsonConvert.SerializeObject(ReqJSON),
-                       Encoding.UTF8,
-                       "application/json"
-                   )
-                ).Result;
-                return JObject.Parse(response.Content.ReadAsStringAsync().Result)["data"]?.ToObject<JObject>() ?? JObject.Parse(@"{""group_id"":0}");
+                return JObject.Parse(response.Content.ReadAsStringAsync().Result)["data"]?.ToObject<JObject>() ?? JObject.Parse(@"{""message_id"":0}");
             }
             catch
             {
-                return JObject.Parse(@"{""group_id"":0}");
+                return JObject.Parse(@"{""message_id"":0}");
             }
         }
-        public static JObject GetGroupMember(long TargetGroupId, string TargetUin)
+        public static async Task<JObject> GetGroupMember<T1, T2>(T1 TargetGroupId, T2 TargetUin)
         {
-            if (TargetGroupId == 0 || TargetUin.Length == 0)
-            {
-                return JObject.Parse(@"{""group_id"":0}");
-            }
             try
             {
                 object ReqJSON = new
@@ -389,13 +362,13 @@ namespace AdminBot.Net.NetWork
                     user_id = TargetUin,
                     no_cache = false
                 };
-                HttpResponseMessage response = HClient.PostAsync(HttpPostUrl + "/get_group_member_info",
+                HttpResponseMessage response = await HClient.PostAsync(HttpPostUrl + "/get_group_member_info",
                    new StringContent(
                        JsonConvert.SerializeObject(ReqJSON),
                        Encoding.UTF8,
                        "application/json"
                    )
-                ).Result;
+                );
                 return JObject.Parse(response.Content.ReadAsStringAsync().Result)["data"]?.ToObject<JObject>() ?? JObject.Parse(@"{""group_id"":0}");
             }
             catch
