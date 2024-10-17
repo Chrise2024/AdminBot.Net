@@ -22,16 +22,20 @@ namespace AdminBot.Net
         private static readonly OPManager MainOPManager = new();
 
         private static readonly PermissionManager MainPermissionManager = new();
-        
+
+        private static readonly HttpListener httpListener = new();
+
         static void Main(string[] args)
         {
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.InputEncoding = Encoding.UTF8;
             FileIO.EnsurePath(ProgramCahce);
-            HttpListener httpListener = new HttpListener();
             httpListener.Prefixes.Add(MainConfigManager.GetHttpServerUrl());
             httpListener.Start();
-            Task.Run(() =>
+            Task.Run(async () =>
             {
-                httpListener.BeginGetContext(new AsyncCallback(GetContextCallBack), httpListener);
+                httpListener.Start();
+                await ReceiveLoop();
             });
             Console.WriteLine("Launched");
             string TempString;
@@ -40,10 +44,12 @@ namespace AdminBot.Net
                 TempString = Console.ReadLine() ?? "";
                 if (TempString.Equals("stop"))
                 {
+                    httpListener.Close();
                     break;
                 }
             }
         }
+        /*
         static void GetContextCallBack(IAsyncResult result)
         {
             try
@@ -64,6 +70,29 @@ namespace AdminBot.Net
                 CommandResolver.HandleMsg(JObject.Parse(ReqString));
             }
             catch { }
+        }
+        */
+        private static async Task ReceiveLoop()
+        {
+            while (httpListener.IsListening)
+            {
+                try
+                {
+                    var context = await httpListener.GetContextAsync().WaitAsync(new CancellationToken());
+                    _ = HandleRequestAsync(context);
+                }
+                catch { }
+            }
+        }
+        private static async Task HandleRequestAsync(HttpListenerContext context)
+        {
+            StreamReader sr = new(context.Request.InputStream);
+            string ReqString = Regex.Unescape(sr.ReadToEnd());
+            sr.Close();
+            context.Response.StatusCode = 200;
+            context.Response.Close();
+            //Console.WriteLine(Regex.Unescape(ReqString));
+            CommandResolver.HandleMsg(JObject.Parse(ReqString));
         }
         public static string GetProgramRoot()
         {
