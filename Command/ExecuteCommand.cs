@@ -171,7 +171,7 @@ namespace AdminBot.Net.Command
                                 ExecuteLogger.Warn($"Not Enough Permission: {Args.CallerPermissionLevel} Compare to {TargetPermissionLevel}, At Command <{Args.Command}>");
                                 await HttpApi.SendPlainMsg(Args.GroupId, "权限等级不足");
                             }
-                            else if (!int.TryParse(Args.Param[1], out var duration))
+                            else if (!Int32.TryParse(Args.Param[1], out var duration))
                             {
                                 ExecuteLogger.Error($"Invalid Duration: {Args.Param[0]}, At Command <{Args.Command}>");
                                 await HttpApi.SendPlainMsg(Args.GroupId, $"无效的时长: {Args.Param[1]}");
@@ -226,7 +226,7 @@ namespace AdminBot.Net.Command
                             }
                             else
                             {
-                                long TargetUin = TargetMsg.Value<JObject>("sender")?.Value<int>("user_id") ?? 0;
+                                long TargetUin = TargetMsg.Value<JObject>("sender")?.Value<long>("user_id") ?? 0;
                                 TargetPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
                                 if (TargetPermissionLevel == -1)
                                 {

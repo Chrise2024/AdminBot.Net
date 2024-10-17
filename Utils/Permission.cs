@@ -15,7 +15,7 @@ namespace AdminBot.Net.Utils
             }
             Console.WriteLine(1);
             JObject member = await HttpApi.GetGroupMember(TargetGroupId, TargetUin);
-            if (member.Value<int>("group_id") > 0)
+            if (member.Value<long>("group_id") > 0)
             {
                 if (Program.GetConfigManager().GetCommanderList().Contains(TargetUin)) return 3;
                 else if ((!(member.Value<string>("role")?.Equals("member"))) ?? false) return 2;
@@ -35,7 +35,7 @@ namespace AdminBot.Net.Utils
             }
             JObject member = await HttpApi.GetGroupMember(TargetGroupId, TargetUin);
             long IntUin = Int64.Parse(TargetUin);
-            if (member.Value<int>("group_id") > 0)
+            if (member.Value<long>("group_id") > 0)
             {
                 if (Program.GetConfigManager().GetCommanderList().Contains(IntUin)) return 3;
                 else if ((!(member.Value<string>("role")?.Equals("member"))) ?? false) return 2;

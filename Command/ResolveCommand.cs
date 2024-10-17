@@ -23,8 +23,8 @@ namespace AdminBot.Net.Command
         private static readonly Logger HandleLogger = new("CommandResolver.HandleMsg");
         private static async Task<ArgSchematics> Parse(JObject MsgBody)
         {
-            long GroupId = MsgBody.Value<int>("group_id");
-            int CallerUin = MsgBody.Value<int>("user_id");
+            long GroupId = MsgBody.Value<long>("group_id");
+            long CallerUin = MsgBody.Value<long>("user_id");
             int MsgId = MsgBody.Value<int>("message_id");
             string CQString = MsgBody.Value<string>("raw_message") ?? "";
             int CallerPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(GroupId,CallerUin);
