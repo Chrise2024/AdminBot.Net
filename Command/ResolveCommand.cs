@@ -25,7 +25,7 @@ namespace AdminBot.Net.Command
         {
             long GroupId = MsgBody.Value<int>("group_id");
             int CallerUin = MsgBody.Value<int>("user_id");
-            int MsgId = (int)MsgBody.Value<int>("message_id");
+            int MsgId = MsgBody.Value<int>("message_id");
             string CQString = MsgBody.Value<string>("raw_message") ?? "";
             int CallerPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(GroupId,CallerUin);
             if (MsgId == 0 || CallerPermissionLevel == -1)
@@ -161,7 +161,7 @@ namespace AdminBot.Net.Command
         {
             if ((MsgBody.Value<string>("post_type")?.Equals("message") ?? false) &&
                 (MsgBody.Value<string>("message_type")?.Equals("group") ?? false) &&
-                WorkGRoup.Contains(MsgBody.Value<int>("group_id"))
+                WorkGRoup.Contains(MsgBody.Value<long>("group_id"))
                 )
             {
                 ArgSchematics Args = await Parse(MsgBody);
