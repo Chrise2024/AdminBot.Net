@@ -31,7 +31,6 @@ namespace AdminBot.Net
             Console.InputEncoding = Encoding.UTF8;
             FileIO.EnsurePath(ProgramCahce);
             httpListener.Prefixes.Add(MainConfigManager.GetHttpServerUrl());
-            httpListener.Start();
             Task.Run(async () =>
             {
                 httpListener.Start();

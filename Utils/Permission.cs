@@ -13,7 +13,6 @@ namespace AdminBot.Net.Utils
             {
                 return -1;
             }
-            Console.WriteLine(1);
             JObject member = await HttpApi.GetGroupMember(TargetGroupId, TargetUin);
             if (member.Value<long>("group_id") > 0)
             {
