@@ -5,6 +5,7 @@ using System.Net.Http.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using AdminBot.Net;
+using System.Drawing.Drawing2D;
 
 namespace AdminBot.Net.NetWork
 {
@@ -13,6 +14,13 @@ namespace AdminBot.Net.NetWork
         LocalFile = 0,
         Url = 1,
         Base64 = 2
+    }
+    public enum ImageSubType
+    {
+        Normal = 0,  //正常图片
+        Emoji = 1,   //表情包
+        Hot = 2,     //热图
+        Battel = 3,  //斗图
     }
     internal class HttpApi
     {
@@ -80,12 +88,12 @@ namespace AdminBot.Net.NetWork
             }
             catch { }
         }
-        public static async Task SendImageMsg<T>(T TargetGroupId, string ImageContent, ImageSendType ImageType = ImageSendType.LocalFile)
+        public static async Task SendImageMsg<T>(T TargetGroupId, string ImageContent, ImageSendType SendType = ImageSendType.LocalFile,ImageSubType SubType = ImageSubType.Normal)
         {
             try
             {
                 object ReqJSON;
-                if (ImageType == ImageSendType.LocalFile)
+                if (SendType == ImageSendType.LocalFile)
                 {
                     ReqJSON = new
                     {
@@ -95,13 +103,14 @@ namespace AdminBot.Net.NetWork
                             new {
                                 type = "image",
                                 data = new {
-                                    file = $"file:///{ImageContent}"
+                                    file = $"file:///{ImageContent}",
+                                    subType = SubType
                                 }
                             }
                         }
                     };
                 }
-                else if (ImageType == ImageSendType.Url)
+                else if (SendType == ImageSendType.Url)
                 {
                     ReqJSON = new
                     {
@@ -111,13 +120,14 @@ namespace AdminBot.Net.NetWork
                             new {
                                 type = "image",
                                 data = new {
-                                    file = ImageContent
+                                    file = ImageContent,
+                                    subType = SubType
                                 }
                             }
                         }
                     };
                 }
-                else if (ImageType == ImageSendType.Base64)
+                else if (SendType == ImageSendType.Base64)
                 {
                     ReqJSON = new
                     {
@@ -127,7 +137,8 @@ namespace AdminBot.Net.NetWork
                             new {
                                 type = "image",
                                 data = new {
-                                    file = $"base64://{ImageContent}"
+                                    file = $"base64://{ImageContent}",
+                                    subType = SubType
                                 }
                             }
                         }
@@ -147,12 +158,12 @@ namespace AdminBot.Net.NetWork
             }
             catch { }
         }
-        public static async Task SendImageMsgWithReply<T1,T2>(T1 TargetGroupId, T2 ReplyMsgId, string ImageContent, ImageSendType ImageType = ImageSendType.LocalFile)
+        public static async Task SendImageMsgWithReply<T1,T2>(T1 TargetGroupId, T2 ReplyMsgId, string ImageContent, ImageSendType SendType = ImageSendType.LocalFile, ImageSubType SubType = ImageSubType.Normal)
         {
             try
             {
                 object ReqJSON;
-                if (ImageType == ImageSendType.LocalFile)
+                if (SendType == ImageSendType.LocalFile)
                 {
                     ReqJSON = new
                     {
@@ -168,13 +179,14 @@ namespace AdminBot.Net.NetWork
                             new {
                                 type = "image",
                                 data = new {
-                                    file = $"file:///{ImageContent}"
+                                    file = $"file:///{ImageContent}",
+                                    subType = SubType
                                 }
                             }
                         }
                     };
                 }
-                else if (ImageType == ImageSendType.Url)
+                else if (SendType == ImageSendType.Url)
                 {
                     ReqJSON = new
                     {
@@ -190,13 +202,14 @@ namespace AdminBot.Net.NetWork
                             new {
                                 type = "image",
                                 data = new {
-                                    file = ImageContent
+                                    file = ImageContent,
+                                    subType = SubType
                                 }
                             }
                         }
                     };
                 }
-                else if (ImageType == ImageSendType.Base64)
+                else if (SendType == ImageSendType.Base64)
                 {
                     ReqJSON = new
                     {
@@ -212,7 +225,8 @@ namespace AdminBot.Net.NetWork
                             new {
                                 type = "image",
                                 data = new {
-                                    file = $"base64://{ImageContent}"
+                                    file = $"base64://{ImageContent}",
+                                    subType = SubType
                                 }
                             }
                         }
