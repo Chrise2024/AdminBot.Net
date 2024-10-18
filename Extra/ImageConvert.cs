@@ -14,62 +14,134 @@ namespace AdminBot.Net.Extra
     {
         public static Bitmap SymmetryL(Bitmap bmp)
         {
-            Rectangle CropRect = new(0, 0, bmp.Width / 2, bmp.Height);
+            int RW = bmp.Width / 2;
+            Rectangle CropRect = new(0, 0, RW, bmp.Height);
             Bitmap CroppedImage = bmp.Clone(CropRect, bmp.PixelFormat);
-            Bitmap CroppedImageOrigin = (Bitmap)CroppedImage.Clone();
             Bitmap Bg = new(bmp.Width, bmp.Height);
             Graphics g = Graphics.FromImage(Bg);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(0, 0));
             CroppedImage.RotateFlip(RotateFlipType.Rotate180FlipY);
-            g.DrawImage(CroppedImageOrigin, new System.Drawing.Point(0, 0));
-            g.DrawImage(CroppedImage, new System.Drawing.Point(bmp.Width / 2, 0));
+            g.DrawImage(CroppedImage, new System.Drawing.Point(RW, 0));
             bmp.Dispose();
             CroppedImage.Dispose();
-            CroppedImageOrigin.Dispose();
             return Bg;
         }
         public static Bitmap SymmetryR(Bitmap bmp)
         {
-            Rectangle CropRect = new(bmp.Width / 2, 0, bmp.Width / 2, bmp.Height);
+            int RW = bmp.Width / 2;
+            Rectangle CropRect = new(RW, 0, RW, bmp.Height);
             Bitmap CroppedImage = bmp.Clone(CropRect, bmp.PixelFormat);
-            Bitmap CroppedImageOrigin = (Bitmap)CroppedImage.Clone();
             Bitmap Bg = new(bmp.Width, bmp.Height);
             Graphics g = Graphics.FromImage(Bg);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(RW, 0));
             CroppedImage.RotateFlip(RotateFlipType.Rotate180FlipY);
-            g.DrawImage(CroppedImageOrigin, new System.Drawing.Point(bmp.Width / 2, 0));
             g.DrawImage(CroppedImage, new System.Drawing.Point(0, 0));
             bmp.Dispose();
             CroppedImage.Dispose();
-            CroppedImageOrigin.Dispose();
             return Bg;
         }
         public static Bitmap SymmetryU(Bitmap bmp)
         {
-            Rectangle CropRect = new(0, 0, bmp.Width, bmp.Height / 2);
+            int RH = bmp.Height / 2;
+            Rectangle CropRect = new(0, 0, bmp.Width, RH);
             Bitmap CroppedImage = bmp.Clone(CropRect, bmp.PixelFormat);
-            Bitmap CroppedImageOrigin = (Bitmap)CroppedImage.Clone();
             Bitmap Bg = new(bmp.Width, bmp.Height);
             Graphics g = Graphics.FromImage(Bg);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(0, 0));
             CroppedImage.RotateFlip(RotateFlipType.Rotate180FlipX);
-            g.DrawImage(CroppedImageOrigin, new System.Drawing.Point(0, 0));
-            g.DrawImage(CroppedImage, new System.Drawing.Point(0, bmp.Height / 2));
+            g.DrawImage(CroppedImage, new System.Drawing.Point(0, RH));
             bmp.Dispose();
             CroppedImage.Dispose();
-            CroppedImageOrigin.Dispose();
             return Bg;
         }
         public static Bitmap SymmetryD(Bitmap bmp)
         {
-            Rectangle CropRect = new(0, bmp.Height / 2, bmp.Width, bmp.Height / 2);
+            int RH = bmp.Height / 2;
+            Rectangle CropRect = new(0, RH, bmp.Width, RH);
             Bitmap CroppedImage = bmp.Clone(CropRect, bmp.PixelFormat);
-            Bitmap CroppedImageOrigin = (Bitmap)CroppedImage.Clone();
             Bitmap Bg = new(bmp.Width, bmp.Height);
             Graphics g = Graphics.FromImage(Bg);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(0, RH));
             CroppedImage.RotateFlip(RotateFlipType.Rotate180FlipX);
-            g.DrawImage(CroppedImageOrigin, new System.Drawing.Point(0, bmp.Height / 2));
             g.DrawImage(CroppedImage, new System.Drawing.Point(0, 0));
             bmp.Dispose();
             CroppedImage.Dispose();
-            CroppedImageOrigin.Dispose();
+            return Bg;
+        }
+        public static Bitmap SymmetryLU(Bitmap bmp)
+        {
+            int RW = bmp.Width / 2;
+            int RH = bmp.Height / 2;
+            Rectangle CropRect = new(0, 0, RW, RH);
+            Bitmap CroppedImage = bmp.Clone(CropRect, bmp.PixelFormat);
+            Bitmap Bg = new(bmp.Width, bmp.Height);
+            Graphics g = Graphics.FromImage(Bg);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(0, 0));
+            CroppedImage.RotateFlip(RotateFlipType.Rotate180FlipX);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(0, RH));
+            CroppedImage.RotateFlip(RotateFlipType.Rotate180FlipY);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(RW, RH));
+            CroppedImage.RotateFlip(RotateFlipType.Rotate180FlipX);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(RW, 0));
+            bmp.Dispose();
+            CroppedImage.Dispose();
+            return Bg;
+        }
+        public static Bitmap SymmetryRU(Bitmap bmp)
+        {
+            int RW = bmp.Width / 2;
+            int RH = bmp.Height / 2;
+            Rectangle CropRect = new(RW, 0, RW, RH);
+            Bitmap CroppedImage = bmp.Clone(CropRect, bmp.PixelFormat);
+            Bitmap Bg = new(bmp.Width, bmp.Height);
+            Graphics g = Graphics.FromImage(Bg);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(RW, 0));
+            CroppedImage.RotateFlip(RotateFlipType.Rotate180FlipX);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(RW, RH));
+            CroppedImage.RotateFlip(RotateFlipType.Rotate180FlipY);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(0, RH));
+            CroppedImage.RotateFlip(RotateFlipType.Rotate180FlipX);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(0, 0));
+            bmp.Dispose();
+            CroppedImage.Dispose();
+            return Bg;
+        }
+        public static Bitmap SymmetryLD(Bitmap bmp)
+        {
+            int RW = bmp.Width / 2;
+            int RH = bmp.Height / 2;
+            Rectangle CropRect = new(0, RH, RW, RH);
+            Bitmap CroppedImage = bmp.Clone(CropRect, bmp.PixelFormat);
+            Bitmap Bg = new(bmp.Width, bmp.Height);
+            Graphics g = Graphics.FromImage(Bg);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(0, RH));
+            CroppedImage.RotateFlip(RotateFlipType.Rotate180FlipX);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(0, 0));
+            CroppedImage.RotateFlip(RotateFlipType.Rotate180FlipY);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(RW, 0));
+            CroppedImage.RotateFlip(RotateFlipType.Rotate180FlipX);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(RW, RH));
+            bmp.Dispose();
+            CroppedImage.Dispose();
+            return Bg;
+        }
+        public static Bitmap SymmetryRD(Bitmap bmp)
+        {
+            int RW = bmp.Width / 2;
+            int RH = bmp.Height / 2;
+            Rectangle CropRect = new(RW, RH, RW, RH);
+            Bitmap CroppedImage = bmp.Clone(CropRect, bmp.PixelFormat);
+            Bitmap Bg = new(bmp.Width, bmp.Height);
+            Graphics g = Graphics.FromImage(Bg);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(RW, RH));
+            CroppedImage.RotateFlip(RotateFlipType.Rotate180FlipX);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(RW, 0));
+            CroppedImage.RotateFlip(RotateFlipType.Rotate180FlipY);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(0, 0));
+            CroppedImage.RotateFlip(RotateFlipType.Rotate180FlipX);
+            g.DrawImage(CroppedImage, new System.Drawing.Point(0, RH));
+            bmp.Dispose();
+            CroppedImage.Dispose();
             return Bg;
         }
     }
@@ -90,6 +162,22 @@ namespace AdminBot.Net.Extra
             else if (Method.Equals("下上"))
             {
                 TransformMethod = ImageSymmetry.SymmetryD;
+            }
+            else if (Method.Equals("左上"))
+            {
+                TransformMethod = ImageSymmetry.SymmetryLU;
+            }
+            else if (Method.Equals("左下"))
+            {
+                TransformMethod = ImageSymmetry.SymmetryLD;
+            }
+            else if (Method.Equals("右上"))
+            {
+                TransformMethod = ImageSymmetry.SymmetryRU;
+            }
+            else if (Method.Equals("右下"))
+            {
+                TransformMethod = ImageSymmetry.SymmetryRD;
             }
             return TransformMethod(PicImage);
         }
@@ -126,6 +214,23 @@ namespace AdminBot.Net.Extra
             {
                 TransformMethod = ImageSymmetry.SymmetryD;
             }
+            else if (Method.Equals("左上"))
+            {
+                TransformMethod = ImageSymmetry.SymmetryLU;
+            }
+            else if (Method.Equals("左下"))
+            {
+                TransformMethod = ImageSymmetry.SymmetryLD;
+            }
+            else if (Method.Equals("右上"))
+            {
+                TransformMethod = ImageSymmetry.SymmetryRU;
+            }
+            else if (Method.Equals("右下"))
+            {
+                TransformMethod = ImageSymmetry.SymmetryRD;
+            }
+
             FrameDimension Dimension = new(GifImage.FrameDimensionsList[0]);
             int FrameCount = GifImage.GetFrameCount(Dimension);
             uint Delay = GetGifFrameDelay(GifImage);
