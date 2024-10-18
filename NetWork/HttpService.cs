@@ -8,25 +8,46 @@ namespace AdminBot.Net.NetWork
     {
         private static readonly HttpClient HClient = new();
 
-        public static string POST(string Url,object? Content = null)
+        public static async Task<string> POST(string Url, object? Content = null)
         {
-            HttpResponseMessage response = HClient.PostAsync(Url, Content == null ? null : new StringContent(
+            try
+            {
+                HttpResponseMessage response = await HClient.PostAsync(Url, Content == null ? null : new StringContent(
                        JsonConvert.SerializeObject(Content),
                        Encoding.UTF8,
                        "application/json"
-                   )).Result;
-            return response.Content.ReadAsStringAsync().Result;
+                   ));
+                return await response.Content.ReadAsStringAsync();
+            }
+            catch
+            {
+                return "";
+            }
         }
 
-        public static string Get(string Url)
+        public static async Task<string> Get(string Url)
         {
-            HttpResponseMessage response = HClient.GetAsync(Url).Result;
-            return response.Content.ReadAsStringAsync().Result;
+            try
+            {
+                HttpResponseMessage response = await HClient.GetAsync(Url);
+                return await response.Content.ReadAsStringAsync();
+            }
+            catch
+            {
+                return "";
+            }
         }
 
-        public static byte[] GetBinary(string Url)
+        public static async Task<byte[]> GetBinary(string Url)
         {
-            return HClient.GetByteArrayAsync(Url).Result;
+            try
+            {
+                return await HClient.GetByteArrayAsync(Url);
+            }
+            catch
+            {
+                return [];
+            }
         }
     }
 }

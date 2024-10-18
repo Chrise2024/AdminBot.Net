@@ -52,9 +52,12 @@ namespace AdminBot.Net.Command
                             string Pattern = "L";
                             if (Args.Param[1].StartsWith("http")){
                                 //[Pattern] [ImageUrl]
-                                byte[] ImageBytes = HttpService.GetBinary(Args.Param[1]);
-                                ms = new MemoryStream(ImageBytes);
-                                Im = Image.FromStream(ms);
+                                byte[] ImageBytes = await HttpService.GetBinary(Args.Param[1]);
+                                if (ImageBytes.Length > 0)
+                                {
+                                    ms = new MemoryStream(ImageBytes);
+                                    Im = Image.FromStream(ms);
+                                }
                                 Pattern = Args.Param[0];
                             }
                             else
@@ -69,9 +72,12 @@ namespace AdminBot.Net.Command
                                 else
                                 {
                                     string PicUrl = CommandResolver.ExtractUrlFromMsg(TargetMsg);
-                                    byte[] ImageBytes = HttpService.GetBinary(PicUrl);
-                                    ms = new MemoryStream(ImageBytes);
-                                    Im = Image.FromStream(ms);
+                                    byte[] ImageBytes = await HttpService.GetBinary(PicUrl);
+                                    if (ImageBytes.Length > 0)
+                                    {
+                                        ms = new MemoryStream(ImageBytes);
+                                        Im = Image.FromStream(ms);
+                                    }
                                     Pattern = Args.Param[1];
                                 }
                             }
