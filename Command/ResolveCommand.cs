@@ -18,16 +18,18 @@ namespace AdminBot.Net.Command
 
         private static readonly string CommandPrefix = Program.GetConfigManager().GetCommandPrefix();
 
-        private static readonly Logger ArgLogger = new("CommandResolver.ArgParse");
+        private static readonly Logger ArgLogger = new("CommandResolver", "ArgParse");
 
-        private static readonly Logger HandleLogger = new("CommandResolver.HandleMsg");
-        private static async Task<ArgSchematics> Parse(JObject MsgBody)
+        private static readonly Logger HandleLogger = new("CommandResolver", "HandleMsg");
+
+        private static readonly PermissionManager CRPermissionManager = Program.GetPermissionManager();
+        private static async Task<ArgSchematics> Parse(MsgBodySchematics MsgBody)
         {
-            long GroupId = MsgBody.Value<long>("group_id");
-            long CallerUin = MsgBody.Value<long>("user_id");
-            int MsgId = MsgBody.Value<int>("message_id");
-            string CQString = MsgBody.Value<string>("raw_message") ?? "";
-            int CallerPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(GroupId,CallerUin);
+            long GroupId = MsgBody.group_id ?? 0;
+            long CallerUin = MsgBody.user_id ?? 0;
+            int MsgId = MsgBody.message_id ?? 0;
+            string CQString = MsgBody.raw_message ?? "";
+            int CallerPermissionLevel = await CRPermissionManager.GetPermissionLevel(GroupId,CallerUin);
             if (MsgId == 0 || CallerPermissionLevel == -1)
             {
                 ArgLogger.Error("Invalid Msg Body");
@@ -138,11 +140,11 @@ namespace AdminBot.Net.Command
             return CQEntity;
         }
 
-        public static string ExtractUrlFromMsg(JObject MsgBody)
+        public static string ExtractUrlFromMsg(MsgBodySchematics MsgBody)
         {
-            if (MsgBody.TryGetValue("message",out var JA))
+            if (MsgBody.message?.Count > 0)
             {
-                List<JObject> MsgChain = JA.ToObject<List<JObject>>() ?? [];
+                List<JObject> MsgChain = MsgBody.message;
                 if (MsgChain.Count > 0)
                 {
                     JObject Msg = MsgChain[0];
@@ -157,11 +159,11 @@ namespace AdminBot.Net.Command
             }
             return "";
         }
-        public static async void HandleMsg(JObject MsgBody)
+        public static async Task HandleMsg(MsgBodySchematics MsgBody)
         {
-            if ((MsgBody.Value<string>("post_type")?.Equals("message") ?? false) &&
-                (MsgBody.Value<string>("message_type")?.Equals("group") ?? false) &&
-                WorkGRoup.Contains(MsgBody.Value<long>("group_id"))
+            if ((MsgBody.post_type?.Equals("message") ?? false) &&
+                (MsgBody.message_type?.Equals("group") ?? false) &&
+                WorkGRoup.Contains(MsgBody.group_id ?? 0)
                 )
             {
                 ArgSchematics Args = await Parse(MsgBody);

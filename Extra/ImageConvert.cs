@@ -1,12 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
-using System.ComponentModel;
+﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
-using System.Text.Json;
 using ImageMagick;
 using ImageMagick.Drawing;
+using Newtonsoft.Json.Linq;
 
 namespace AdminBot.Net.Extra
 {

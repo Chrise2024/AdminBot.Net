@@ -5,7 +5,7 @@ using System.Net.Http.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using AdminBot.Net;
-using System.Drawing.Drawing2D;
+using AdminBot.Net.Utils;
 
 namespace AdminBot.Net.NetWork
 {
@@ -27,6 +27,8 @@ namespace AdminBot.Net.NetWork
         private static readonly string HttpPostUrl = Program.GetConfigManager().GetHttpPostUrl();
 
         private static readonly HttpClient HClient = new();
+
+        private static readonly Logger HApi = new("HttpService");
 
         public static async Task SendPlainMsg<T>(T TargetGroupId,string MsgText)
         {
@@ -53,7 +55,12 @@ namespace AdminBot.Net.NetWork
                    )
                 );
             }
-            catch { }
+            catch (Exception ex)
+            {
+                HApi.Error("Error Occured, Error Information:");
+                HApi.Error(ex.Message);
+                HApi.Error(ex.StackTrace ?? "");
+            }
         }
         public static async Task SendReplyMsg<T1,T2>(T1 TargetGroupId,T2 ReplyMsgId, string MsgText)
         {
@@ -86,7 +93,12 @@ namespace AdminBot.Net.NetWork
                    )
                 );
             }
-            catch { }
+            catch (Exception ex)
+            {
+                HApi.Error("Error Occured, Error Information:");
+                HApi.Error(ex.Message);
+                HApi.Error(ex.StackTrace ?? "");
+            }
         }
         public static async Task SendImageMsg<T>(T TargetGroupId, string ImageContent, ImageSendType SendType = ImageSendType.LocalFile,ImageSubType SubType = ImageSubType.Normal)
         {
@@ -156,7 +168,12 @@ namespace AdminBot.Net.NetWork
                    )
                 );
             }
-            catch { }
+            catch (Exception ex)
+            {
+                HApi.Error("Error Occured, Error Information:");
+                HApi.Error(ex.Message);
+                HApi.Error(ex.StackTrace ?? "");
+            }
         }
         public static async Task SendImageMsgWithReply<T1,T2>(T1 TargetGroupId, T2 ReplyMsgId, string ImageContent, ImageSendType SendType = ImageSendType.LocalFile, ImageSubType SubType = ImageSubType.Normal)
         {
@@ -244,7 +261,12 @@ namespace AdminBot.Net.NetWork
                    )
                 );
             }
-            catch { }
+            catch (Exception ex)
+            {
+                HApi.Error("Error Occured, Error Information:");
+                HApi.Error(ex.Message);
+                HApi.Error(ex.StackTrace ?? "");
+            }
         }
         public static async void SetGroupBan<T1, T2>(T1 TargetGroupId, T2 TargetUin,int Duration)
         {
@@ -264,7 +286,12 @@ namespace AdminBot.Net.NetWork
                    )
                 );
             }
-            catch { }
+            catch (Exception ex)
+            {
+                HApi.Error("Error Occured, Error Information:");
+                HApi.Error(ex.Message);
+                HApi.Error(ex.StackTrace ?? "");
+            }
         }
         public static async void GroupKick<T1, T2>(T1 TargetGroupId, T2 TargetUin, bool PermReject = false)
         {
@@ -284,7 +311,12 @@ namespace AdminBot.Net.NetWork
                    )
                 );
             }
-            catch { }
+            catch (Exception ex)
+            {
+                HApi.Error("Error Occured, Error Information:");
+                HApi.Error(ex.Message);
+                HApi.Error(ex.StackTrace ?? "");
+            }
         }
         public static async void RecallGroupMsg<T>(T MsgId)
         {
@@ -302,7 +334,12 @@ namespace AdminBot.Net.NetWork
                    )
                 );
             }
-            catch { }
+            catch (Exception ex)
+            {
+                HApi.Error("Error Occured, Error Information:");
+                HApi.Error(ex.Message);
+                HApi.Error(ex.StackTrace ?? "");
+            }
         }
         public static async void SetGroupSpecialTitle<T1, T2>(T1 TargetGroupId, T2 TargetUin, string Title)
         {
@@ -322,7 +359,12 @@ namespace AdminBot.Net.NetWork
                    )
                 );
             }
-            catch { }
+            catch (Exception ex)
+            {
+                HApi.Error("Error Occured, Error Information:");
+                HApi.Error(ex.Message);
+                HApi.Error(ex.StackTrace ?? "");
+            }
         }
         public static async void SetGroupAdmin<T1,T2>(T1 TargetGroupId, T2 TargetUin, bool Enable)
         {
@@ -342,9 +384,14 @@ namespace AdminBot.Net.NetWork
                    )
                 );
             }
-            catch { }
+            catch (Exception ex)
+            {
+                HApi.Error("Error Occured, Error Information:");
+                HApi.Error(ex.Message);
+                HApi.Error(ex.StackTrace ?? "");
+            }
         }
-        public static async Task<JObject> GetMsg<T>(T MsgId)
+        public static async Task<MsgBodySchematics> GetMsg<T>(T MsgId)
         {
             try
             {
@@ -359,14 +406,14 @@ namespace AdminBot.Net.NetWork
                        "application/json"
                    )
                 );
-                return JObject.Parse(response.Content.ReadAsStringAsync().Result)["data"]?.ToObject<JObject>() ?? JObject.Parse(@"{""message_id"":0}");
+                return JObject.Parse(response.Content.ReadAsStringAsync().Result)["data"]?.ToObject<MsgBodySchematics>() ?? new MsgBodySchematics();
             }
             catch
             {
-                return JObject.Parse(@"{""message_id"":0}");
+                return new MsgBodySchematics();
             }
         }
-        public static async Task<JObject> GetGroupMember<T1, T2>(T1 TargetGroupId, T2 TargetUin)
+        public static async Task<GroupMemberSchematics> GetGroupMember<T1, T2>(T1 TargetGroupId, T2 TargetUin)
         {
             try
             {
@@ -383,11 +430,31 @@ namespace AdminBot.Net.NetWork
                        "application/json"
                    )
                 );
-                return JObject.Parse(response.Content.ReadAsStringAsync().Result)["data"]?.ToObject<JObject>() ?? JObject.Parse(@"{""group_id"":0}");
+                return JObject.Parse(response.Content.ReadAsStringAsync().Result)["data"]?.ToObject<GroupMemberSchematics>() ?? new GroupMemberSchematics();
             }
             catch
             {
-                return JObject.Parse(@"{""group_id"":0}");
+                return new GroupMemberSchematics();
+            }
+        }
+        public static async Task<HitokotoSchematics> GetHitokoto(string HType)
+        {
+            string Para = "";
+            foreach(char index in HType)
+            {
+                if (index >= 'a' && index <= 'l')
+                {
+                    Para += $"c={index}&";
+                }
+            }
+            try
+            {
+                HttpResponseMessage response = await HClient.GetAsync("https://v1.hitokoto.cn/?" + Para);
+                return JsonConvert.DeserializeObject<HitokotoSchematics>(response.Content.ReadAsStringAsync().Result);
+            }
+            catch
+            {
+                return new HitokotoSchematics();
             }
         }
     }

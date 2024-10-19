@@ -7,18 +7,21 @@ namespace AdminBot.Net.Utils
 {
     internal class PermissionManager
     {
+        private readonly List<long> CommanderList = Program.GetConfigManager().GetCommanderList();
+
+        private readonly OPManager POPManager = Program.GetOPManager();
         public async Task<int> GetPermissionLevel(long TargetGroupId, long TargetUin)
         {
             if (TargetGroupId == 0 || TargetUin == 0)
             {
                 return -1;
             }
-            JObject member = await HttpApi.GetGroupMember(TargetGroupId, TargetUin);
-            if (member.Value<long>("group_id") > 0)
+            GroupMemberSchematics Member = await HttpApi.GetGroupMember(TargetGroupId, TargetUin);
+            if ((Member.group_id ?? 0) != 0)
             {
-                if (Program.GetConfigManager().GetCommanderList().Contains(TargetUin)) return 3;
-                else if ((!(member.Value<string>("role")?.Equals("member"))) ?? false) return 2;
-                else if (Program.GetOPManager().IsOP(TargetGroupId, TargetUin)) return 1;
+                if (CommanderList.Contains(TargetUin)) return 3;
+                else if (!(Member.role?.Equals("member") ?? true)) return 2;
+                else if (POPManager.IsOP(TargetGroupId, TargetUin)) return 1;
                 else return 0;
             }
             else
@@ -32,13 +35,13 @@ namespace AdminBot.Net.Utils
             {
                 return -1;
             }
-            JObject member = await HttpApi.GetGroupMember(TargetGroupId, TargetUin);
+            GroupMemberSchematics Member = await HttpApi.GetGroupMember(TargetGroupId, TargetUin);
             long IntUin = Int64.Parse(TargetUin);
-            if (member.Value<long>("group_id") > 0)
+            if ((Member.group_id ?? 0) != 0)
             {
-                if (Program.GetConfigManager().GetCommanderList().Contains(IntUin)) return 3;
-                else if ((!(member.Value<string>("role")?.Equals("member"))) ?? false) return 2;
-                else if (Program.GetOPManager().IsOP(TargetGroupId, IntUin)) return 1;
+                if (CommanderList.Contains(IntUin)) return 3;
+                else if (!(Member.role?.Equals("member") ?? true)) return 2;
+                else if (POPManager.IsOP(TargetGroupId, IntUin)) return 1;
                 else return 0;
             }
             else
@@ -48,7 +51,7 @@ namespace AdminBot.Net.Utils
         }
         public async Task<bool> CheckUin(long TargetGroupId, long TargetUin)
         {
-            return (await HttpApi.GetGroupMember(TargetGroupId, TargetUin)).Value<string>("group_id")?.Length > 0;
+            return ((await HttpApi.GetGroupMember(TargetGroupId, TargetUin)).group_id ?? 0) != 0;
         }
     }
 }
