@@ -25,10 +25,10 @@ namespace AdminBot.Net.Command
         private static readonly PermissionManager CRPermissionManager = Program.GetPermissionManager();
         private static async Task<ArgSchematics> Parse(MsgBodySchematics MsgBody)
         {
-            long GroupId = MsgBody.group_id ?? 0;
-            long CallerUin = MsgBody.user_id ?? 0;
-            int MsgId = MsgBody.message_id ?? 0;
-            string CQString = MsgBody.raw_message ?? "";
+            long GroupId = MsgBody.GroupId ?? 0;
+            long CallerUin = MsgBody.UserId ?? 0;
+            int MsgId = MsgBody.MessageId ?? 0;
+            string CQString = MsgBody.RawMessage ?? "";
             int CallerPermissionLevel = await CRPermissionManager.GetPermissionLevel(GroupId,CallerUin);
             if (MsgId == 0 || CallerPermissionLevel == -1)
             {
@@ -142,9 +142,9 @@ namespace AdminBot.Net.Command
 
         public static string ExtractUrlFromMsg(MsgBodySchematics MsgBody)
         {
-            if (MsgBody.message?.Count > 0)
+            if (MsgBody.Message?.Count > 0)
             {
-                List<JObject> MsgChain = MsgBody.message;
+                List<JObject> MsgChain = MsgBody.Message;
                 if (MsgChain.Count > 0)
                 {
                     JObject Msg = MsgChain[0];
@@ -161,9 +161,9 @@ namespace AdminBot.Net.Command
         }
         public static async Task HandleMsg(MsgBodySchematics MsgBody)
         {
-            if ((MsgBody.post_type?.Equals("message") ?? false) &&
-                (MsgBody.message_type?.Equals("group") ?? false) &&
-                WorkGRoup.Contains(MsgBody.group_id ?? 0)
+            if ((MsgBody.PostType?.Equals("message") ?? false) &&
+                (MsgBody.MessageType?.Equals("group") ?? false) &&
+                WorkGRoup.Contains(MsgBody.GroupId ?? 0)
                 )
             {
                 ArgSchematics Args = await Parse(MsgBody);

@@ -31,14 +31,14 @@ namespace AdminBot.Net.Utils
             {
             ""type"": ""object"",
             ""properties"": {
-                    ""HttpServerUrl"": { ""type"": ""string"" , ""format"": ""uri"" },
-                    ""HttpPostUrl"": { ""type"": ""string"" , ""format"": ""uri"" },
-                    ""GroupId"": { ""type"": ""array"", ""items"": { ""type"": ""integer"" } },
-                    ""Commander"": { ""type"": ""array"", ""items"": { ""type"": ""integer"" } },
-                    ""DisabledCommand"": { ""type"": ""array"", ""items"": { ""type"": ""string"" } },
-                    ""CommandPrefix"": { ""type"": ""string"" }
+                    ""http_server_url"": { ""type"": ""string"" , ""format"": ""uri"" },
+                    ""http_post_url"": { ""type"": ""string"" , ""format"": ""uri"" },
+                    ""group_id"": { ""type"": ""array"", ""items"": { ""type"": ""integer"" } },
+                    ""commander"": { ""type"": ""array"", ""items"": { ""type"": ""integer"" } },
+                    ""disabled_command"": { ""type"": ""array"", ""items"": { ""type"": ""string"" } },
+                    ""command_prefix"": { ""type"": ""string"" }
                 },
-                ""required"": [""HttpServerUrl"", ""HttpPostUrl"", ""GroupId"", ""Commander"", ""DisabledCommand"", ""CommandPrefix""]
+                ""required"": [""http_server_url"", ""http_post_url"", ""group_id"", ""commander"", ""disabled_command"", ""command_prefix""]
             }"
             );
 
@@ -206,8 +206,7 @@ namespace AdminBot.Net.Utils
         }
         public int AddOP(long TargetGroupId, string StrTargetUin)
         {
-            long TargetUin = Int64.Parse(StrTargetUin);
-            if (OPList.TryGetValue(TargetGroupId, out var list))
+            if (Int64.TryParse(StrTargetUin, out var TargetUin) && OPList.TryGetValue(TargetGroupId, out var list))
             {
                 if (!list.Contains(TargetUin))
                 {
@@ -247,8 +246,7 @@ namespace AdminBot.Net.Utils
         }
         public int RemoveOP(long TargetGroupId, string StrTargetUin)
         {
-            long TargetUin = Int64.Parse(StrTargetUin);
-            if (OPList.TryGetValue(TargetGroupId, out var list))
+            if (Int64.TryParse(StrTargetUin, out var TargetUin) && OPList.TryGetValue(TargetGroupId, out var list))
             {
                 if (list.Remove(TargetUin))
                 {
@@ -278,8 +276,7 @@ namespace AdminBot.Net.Utils
         }
         public bool IsOP(long TargetGroupId, string StrTargetUin)
         {
-            long TargetUin = Int64.Parse(StrTargetUin);
-            if (OPList.TryGetValue(TargetGroupId, out var list))
+            if (Int64.TryParse(StrTargetUin, out var TargetUin) && OPList.TryGetValue(TargetGroupId, out var list))
             {
                 return list.Contains(TargetUin);
             }
