@@ -71,7 +71,7 @@ namespace AdminBot.Net.Command
                             {
                                 //[MsgId] [Pattern]
                                 MsgBodySchematics TargetMsg = await HttpApi.GetMsg(Args.Param[0]);
-                                if ((TargetMsg.message_id ?? 0) == 0)
+                                if ((TargetMsg.MessageId ?? 0) == 0)
                                 {
                                     ExecuteLogger.Error($"Invalid MsgId: {Args.Param[0]}, At Command <{Args.Command}>"); ;
                                     await HttpApi.SendPlainMsg(Args.GroupId, "无效的Msg");
@@ -139,9 +139,9 @@ namespace AdminBot.Net.Command
                     {
                         //ParamFormat: [Type]
                         HitokotoSchematics Hitokoto = await HttpApi.GetHitokoto(Args.Param.Count > 0 ? Args.Param[0] : "");
-                        if ((Hitokoto.id ?? 0) != 0)
+                        if ((Hitokoto.Id ?? 0) != 0)
                         {
-                            await HttpApi.SendPlainMsg(Args.GroupId, Hitokoto.hitokoto + "\n---- " + Hitokoto.creator);
+                            await HttpApi.SendPlainMsg(Args.GroupId, $"{Hitokoto.Hitokoto}\n---- {Hitokoto.Creator}");
                         }
                         else
                         {
@@ -174,9 +174,9 @@ namespace AdminBot.Net.Command
                         foreach (long OPUin in OPList)
                         {
                             GroupMemberSchematics Member = await HttpApi.GetGroupMember(Args.GroupId, OPUin);
-                            if ((Member.group_id ?? 0) != 0)
+                            if ((Member.GroupId ?? 0) != 0)
                             {
-                                OutString += $"{Member.nickname} <{OPUin}>,";
+                                OutString += $"{Member.Nickname} <{OPUin}>,";
                             }
                         }
                         await HttpApi.SendPlainMsg(Args.GroupId, OutString.Length > 0 ? OutString : "No OPs");
@@ -190,8 +190,8 @@ namespace AdminBot.Net.Command
                             TargetPermissionLevel = await CEPermissionManager.GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
-                                ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
-                                await HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
+                                ExecuteLogger.Error($"Invalid Target: {TargetUin}, At Command <{Args.Command}>");
+                                await HttpApi.SendPlainMsg(Args.GroupId, $"无效的目标: {TargetUin}");
                             }
                             else if (Args.CallerPermissionLevel <= TargetPermissionLevel)
                             {
@@ -200,7 +200,7 @@ namespace AdminBot.Net.Command
                             }
                             else if (!Int32.TryParse(Args.Param[1], out var duration))
                             {
-                                ExecuteLogger.Error($"Invalid Duration: {Args.Param[0]}, At Command <{Args.Command}>");
+                                ExecuteLogger.Error($"Invalid Duration: {Args.Param[1]}, At Command <{Args.Command}>");
                                 await HttpApi.SendPlainMsg(Args.GroupId, $"无效的时长: {Args.Param[1]}");
                             }
                             else
@@ -222,8 +222,8 @@ namespace AdminBot.Net.Command
                             TargetPermissionLevel = await CEPermissionManager.GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
-                                ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>"); ;
-                                await HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
+                                ExecuteLogger.Error($"Invalid Target: {TargetUin}, At Command <{Args.Command}>"); ;
+                                await HttpApi.SendPlainMsg(Args.GroupId, $"无效的目标: {TargetUin}");
                             }
                             else if (Args.CallerPermissionLevel <= TargetPermissionLevel)
                             {
@@ -246,19 +246,19 @@ namespace AdminBot.Net.Command
                         if (Args.Param.Count > 0)
                         {
                             MsgBodySchematics TargetMsg = await HttpApi.GetMsg(Int32.TryParse(Args.Param[0], out int TargetMsgId) ? TargetMsgId : 0);
-                            if ((TargetMsg.message_id ?? 0) == 0)
+                            if ((TargetMsg.MessageId ?? 0) == 0)
                             {
                                 ExecuteLogger.Error($"Invalid MsgId: {Args.Param[0]}, At Command <{Args.Command}>"); ;
                                 await HttpApi.SendPlainMsg(Args.GroupId, "无效的Msg");
                             }
                             else
                             {
-                                long TargetUin = TargetMsg.sender?.user_id ?? 0;
+                                long TargetUin = TargetMsg.Sender?.UserId ?? 0;
                                 TargetPermissionLevel = await CEPermissionManager.GetPermissionLevel(Args.GroupId, TargetUin);
                                 if (TargetPermissionLevel == -1)
                                 {
                                     ExecuteLogger.Error($"Invalid Target: {TargetUin}, At Command <{Args.Command}>"); ;
-                                    await HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
+                                    await HttpApi.SendPlainMsg(Args.GroupId, $"无效的目标: {TargetUin}");
                                 }
                                 else if (Args.CallerPermissionLevel <= TargetPermissionLevel)
                                 {
@@ -286,8 +286,8 @@ namespace AdminBot.Net.Command
                             TargetPermissionLevel = await CEPermissionManager.GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
-                                ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
-                                await HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
+                                ExecuteLogger.Error($"Invalid Target: {TargetUin}, At Command <{Args.Command}>");
+                                await HttpApi.SendPlainMsg(Args.GroupId, $"无效的目标: {TargetUin}");
                             }
                             else if (Args.CallerPermissionLevel <= TargetPermissionLevel)
                             {
@@ -313,8 +313,8 @@ namespace AdminBot.Net.Command
                             TargetPermissionLevel = await CEPermissionManager.GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
-                                ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
-                                await HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
+                                ExecuteLogger.Error($"Invalid Target: {TargetUin}, At Command <{Args.Command}>");
+                                await HttpApi.SendPlainMsg(Args.GroupId, $"无效的目标: {TargetUin}");
                             }
                             else if (Args.CallerPermissionLevel < 2)
                             {
@@ -349,8 +349,8 @@ namespace AdminBot.Net.Command
                             TargetPermissionLevel = await CEPermissionManager.GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
-                                ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
-                                await HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
+                                ExecuteLogger.Error($"Invalid Target: {TargetUin}, At Command <{Args.Command}>");
+                                await HttpApi.SendPlainMsg(Args.GroupId, $"无效的目标: {TargetUin}");
                             }
                             else if (Args.CallerPermissionLevel < 2)
                             {
@@ -385,8 +385,8 @@ namespace AdminBot.Net.Command
                             TargetPermissionLevel = await CEPermissionManager.GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
-                                ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
-                                await HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
+                                ExecuteLogger.Error($"Invalid Target: {TargetUin}, At Command <{Args.Command}>");
+                                await HttpApi.SendPlainMsg(Args.GroupId, $"无效的目标: {TargetUin}");
                             }
                             else if (Args.CallerPermissionLevel < 3)
                             {
@@ -408,8 +408,8 @@ namespace AdminBot.Net.Command
                             TargetPermissionLevel = await CEPermissionManager.GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
-                                ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
-                                await HttpApi.SendPlainMsg(Args.GroupId, "无效的目标");
+                                ExecuteLogger.Error($"Invalid Target: {TargetUin}, At Command <{Args.Command}>");
+                                await HttpApi.SendPlainMsg(Args.GroupId, $"无效的目标: {TargetUin}");
                             }
                             else if (Args.CallerPermissionLevel < 3)
                             {

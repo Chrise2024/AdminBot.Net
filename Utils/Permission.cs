@@ -17,10 +17,10 @@ namespace AdminBot.Net.Utils
                 return -1;
             }
             GroupMemberSchematics Member = await HttpApi.GetGroupMember(TargetGroupId, TargetUin);
-            if ((Member.group_id ?? 0) != 0)
+            if ((Member.GroupId ?? 0) != 0)
             {
                 if (CommanderList.Contains(TargetUin)) return 3;
-                else if (!(Member.role?.Equals("member") ?? true)) return 2;
+                else if (!(Member.Role?.Equals("member") ?? true)) return 2;
                 else if (POPManager.IsOP(TargetGroupId, TargetUin)) return 1;
                 else return 0;
             }
@@ -36,11 +36,10 @@ namespace AdminBot.Net.Utils
                 return -1;
             }
             GroupMemberSchematics Member = await HttpApi.GetGroupMember(TargetGroupId, TargetUin);
-            long IntUin = Int64.Parse(TargetUin);
-            if ((Member.group_id ?? 0) != 0)
+            if ((Member.GroupId ?? 0) != 0 && Int64.TryParse(TargetUin, out var IntUin))
             {
                 if (CommanderList.Contains(IntUin)) return 3;
-                else if (!(Member.role?.Equals("member") ?? true)) return 2;
+                else if (!(Member.Role?.Equals("member") ?? true)) return 2;
                 else if (POPManager.IsOP(TargetGroupId, IntUin)) return 1;
                 else return 0;
             }
@@ -51,7 +50,7 @@ namespace AdminBot.Net.Utils
         }
         public async Task<bool> CheckUin(long TargetGroupId, long TargetUin)
         {
-            return ((await HttpApi.GetGroupMember(TargetGroupId, TargetUin)).group_id ?? 0) != 0;
+            return ((await HttpApi.GetGroupMember(TargetGroupId, TargetUin)).GroupId ?? 0) != 0;
         }
     }
 }
