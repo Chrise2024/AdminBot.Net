@@ -11,6 +11,7 @@ namespace AdminBot.Net.Utils
         private readonly List<string> DefaultCommands = [
             "help",
             "symmet",
+            "hito",
             "titleself",
             "permission",
             "listop",

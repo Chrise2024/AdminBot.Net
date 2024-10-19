@@ -13,15 +13,22 @@ namespace AdminBot.Net.Command
 {
     internal class CommandExecutor
     {
-        private static readonly Logger ExecuteLogger = new("CommandExecutor.Execute");
 
-        private static readonly List<string> AvaliableCommands = Program.GetConfigManager().GetCommandList();
+        private static readonly ConfigManager CEConfigManager = Program.GetConfigManager();
+
+        private static readonly OPManager CEOPManager = Program.GetOPManager();
+
+        private static readonly PermissionManager CEPermissionManager = Program.GetPermissionManager();
+
+        private static readonly Logger ExecuteLogger = new("CommandExecutor", "Execute");
+
+        private static readonly List<string> AvaliableCommands = CEConfigManager.GetCommandList();
 
         public static async void Execute(ArgSchematics Args)
         {
             if (AvaliableCommands.Contains(Args.Command))
             {
-                bool Enabled = !Program.GetConfigManager().GetDisabledCommand().Contains(Args.Command);
+                bool Enabled = !CEConfigManager.GetDisabledCommand().Contains(Args.Command);
                 ExecuteLogger.Info($"Executing: <{Args.Command}>, Enabled: {Enabled},  With Arg\n{JsonConvert.SerializeObject(Args, Formatting.Indented)}");
                 if (Enabled)
                 {
@@ -63,8 +70,8 @@ namespace AdminBot.Net.Command
                             else
                             {
                                 //[MsgId] [Pattern]
-                                JObject TargetMsg = await HttpApi.GetMsg(Args.Param[0]);
-                                if (!(TargetMsg.Value<string>("message_id")?.Length > 0))
+                                MsgBodySchematics TargetMsg = await HttpApi.GetMsg(Args.Param[0]);
+                                if ((TargetMsg.message_id ?? 0) == 0)
                                 {
                                     ExecuteLogger.Error($"Invalid MsgId: {Args.Param[0]}, At Command <{Args.Command}>"); ;
                                     await HttpApi.SendPlainMsg(Args.GroupId, "无效的Msg");
@@ -128,6 +135,20 @@ namespace AdminBot.Net.Command
                             ExecuteLogger.Error($"Unproper Arg: Too Less Args, At Command <{Args.Command}>");
                         }
                     }
+                    else if (Args.Command.Equals("hito"))
+                    {
+                        //ParamFormat: [Type]
+                        HitokotoSchematics Hitokoto = await HttpApi.GetHitokoto(Args.Param.Count > 0 ? Args.Param[0] : "");
+                        if ((Hitokoto.id ?? 0) != 0)
+                        {
+                            await HttpApi.SendPlainMsg(Args.GroupId, Hitokoto.hitokoto + "\n---- " + Hitokoto.creator);
+                        }
+                        else
+                        {
+                            ExecuteLogger.Error($"Get Hitokoto Failed, At Command <{Args.Command}>");
+                            await HttpApi.SendPlainMsg(Args.GroupId, "获取失败");
+                        }
+                    }
                     else if (Args.Command.Equals("titleself"))
                     {
                         //ParamFormat: [Title]
@@ -148,14 +169,14 @@ namespace AdminBot.Net.Command
                     else if (Args.Command.Equals("listop"))
                     {
                         //ParamFormat: Any
-                        List<long> OPList = Program.GetOPManager().GetOPList(Args.GroupId);
+                        List<long> OPList = CEOPManager.GetOPList(Args.GroupId);
                         string OutString = "";
                         foreach (long OPUin in OPList)
                         {
-                            JObject Member = await HttpApi.GetGroupMember(Args.GroupId, OPUin);
-                            if (Member.Value<string>("group_id")?.Length > 0)
+                            GroupMemberSchematics Member = await HttpApi.GetGroupMember(Args.GroupId, OPUin);
+                            if ((Member.group_id ?? 0) != 0)
                             {
-                                OutString += $"{Member.Value<string>("nickname")} <{OPUin}>,";
+                                OutString += $"{Member.nickname} <{OPUin}>,";
                             }
                         }
                         await HttpApi.SendPlainMsg(Args.GroupId, OutString.Length > 0 ? OutString : "No OPs");
@@ -166,7 +187,7 @@ namespace AdminBot.Net.Command
                         if (Args.Param.Count > 1)
                         {
                             string TargetUin = Args.Param[0];
-                            TargetPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
+                            TargetPermissionLevel = await CEPermissionManager.GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
@@ -198,7 +219,7 @@ namespace AdminBot.Net.Command
                         if (Args.Param.Count > 0)
                         {
                             string TargetUin = Args.Param[0];
-                            TargetPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
+                            TargetPermissionLevel = await CEPermissionManager.GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>"); ;
@@ -224,16 +245,16 @@ namespace AdminBot.Net.Command
                         //Param Format: [TargetMsgId]
                         if (Args.Param.Count > 0)
                         {
-                            JObject TargetMsg = await HttpApi.GetMsg(Int32.TryParse(Args.Param[0], out int TargetMsgId) ? TargetMsgId : 0);
-                            if (!(TargetMsg.Value<string>("message_id")?.Length > 0))
+                            MsgBodySchematics TargetMsg = await HttpApi.GetMsg(Int32.TryParse(Args.Param[0], out int TargetMsgId) ? TargetMsgId : 0);
+                            if ((TargetMsg.message_id ?? 0) == 0)
                             {
                                 ExecuteLogger.Error($"Invalid MsgId: {Args.Param[0]}, At Command <{Args.Command}>"); ;
                                 await HttpApi.SendPlainMsg(Args.GroupId, "无效的Msg");
                             }
                             else
                             {
-                                long TargetUin = TargetMsg.Value<JObject>("sender")?.Value<long>("user_id") ?? 0;
-                                TargetPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
+                                long TargetUin = TargetMsg.sender?.user_id ?? 0;
+                                TargetPermissionLevel = await CEPermissionManager.GetPermissionLevel(Args.GroupId, TargetUin);
                                 if (TargetPermissionLevel == -1)
                                 {
                                     ExecuteLogger.Error($"Invalid Target: {TargetUin}, At Command <{Args.Command}>"); ;
@@ -262,7 +283,7 @@ namespace AdminBot.Net.Command
                         if (Args.Param.Count > 1)
                         {
                             string TargetUin = Args.Param[0];
-                            TargetPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
+                            TargetPermissionLevel = await CEPermissionManager.GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
@@ -289,7 +310,7 @@ namespace AdminBot.Net.Command
                         if (Args.Param.Count > 0)
                         {
                             string TargetUin = Args.Param[0];
-                            TargetPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
+                            TargetPermissionLevel = await CEPermissionManager.GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
@@ -307,7 +328,7 @@ namespace AdminBot.Net.Command
                             }
                             else
                             {
-                                int ret = Program.GetOPManager().AddOP(Args.GroupId, TargetUin);
+                                int ret = CEOPManager.AddOP(Args.GroupId, TargetUin);
                                 if (ret == 200)
                                 {
                                     await HttpApi.SendPlainMsg(Args.GroupId, string.Format("已将<{0}>设为群管", TargetUin));
@@ -325,7 +346,7 @@ namespace AdminBot.Net.Command
                         if (Args.Param.Count > 0)
                         {
                             string TargetUin = Args.Param[0];
-                            TargetPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
+                            TargetPermissionLevel = await CEPermissionManager.GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
@@ -343,7 +364,7 @@ namespace AdminBot.Net.Command
                             }
                             else
                             {
-                                int ret = Program.GetOPManager().RemoveOP(Args.GroupId, TargetUin);
+                                int ret = CEOPManager.RemoveOP(Args.GroupId, TargetUin);
                                 if (ret == 200)
                                 {
                                     await HttpApi.SendPlainMsg(Args.GroupId, $"已取消<{Args.Param[0]}>群管身份");
@@ -361,7 +382,7 @@ namespace AdminBot.Net.Command
                         if (Args.Param.Count > 0)
                         {
                             string TargetUin = Args.Param[0];
-                            TargetPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
+                            TargetPermissionLevel = await CEPermissionManager.GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
@@ -384,7 +405,7 @@ namespace AdminBot.Net.Command
                         if (Args.Param.Count > 0)
                         {
                             string TargetUin = Args.Param[0];
-                            TargetPermissionLevel = await Program.GetPermissionManager().GetPermissionLevel(Args.GroupId, TargetUin);
+                            TargetPermissionLevel = await CEPermissionManager.GetPermissionLevel(Args.GroupId, TargetUin);
                             if (TargetPermissionLevel == -1)
                             {
                                 ExecuteLogger.Error($"Invalid Target: {Args.Param[0]}, At Command <{Args.Command}>");
@@ -418,7 +439,7 @@ namespace AdminBot.Net.Command
                             }
                             else
                             {
-                                Program.GetConfigManager().SetCommandStatus(Args.Param[0], true);
+                                CEConfigManager.SetCommandStatus(Args.Param[0], true);
                             }
                         }
                     }
@@ -439,7 +460,7 @@ namespace AdminBot.Net.Command
                             }
                             else
                             {
-                                Program.GetConfigManager().SetCommandStatus(Args.Param[0], false);
+                                CEConfigManager.SetCommandStatus(Args.Param[0], false);
                             }
                         }
                     }
