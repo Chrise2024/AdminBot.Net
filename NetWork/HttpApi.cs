@@ -2,6 +2,7 @@
 using System.Text;
 using System.Net;
 using System.Net.Http.Json;
+using System.Drawing;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using AdminBot.Net;
@@ -455,6 +456,28 @@ namespace AdminBot.Net.NetWork
             catch
             {
                 return new HitokotoSchematics();
+            }
+        }
+        public static async Task<Image> GetQQAvatar<T>(T TargetUin)
+        {
+            try
+            {
+                byte[] ImageBytes = await HClient.GetByteArrayAsync($"http://q.qlogo.cn/headimg_dl?dst_uin={TargetUin}&spec=640&img_type=jpg");
+                if (ImageBytes.Length > 0)
+                {
+                    MemoryStream ms = new MemoryStream(ImageBytes);
+                    Image Im = Image.FromStream(ms);
+                    ms.Close();
+                    return Im;
+                }
+                else
+                {
+                    return Image.FromFile(Path.Join(Program.GetProgramRoot(), "Local", "512x512.png"));
+                }
+            }
+            catch
+            {
+                return Image.FromFile(Path.Join(Program.GetProgramRoot(),"Local", "512x512.png"));
             }
         }
     }

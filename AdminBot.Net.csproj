@@ -8,6 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Local\QSplash.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Local\QSplash.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="14.0.0" />
     <PackageReference Include="Magick.NET.Core" Version="14.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

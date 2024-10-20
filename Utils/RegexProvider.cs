@@ -30,5 +30,8 @@ namespace AdminBot.Net.Utils
 
         [GeneratedRegex(@"\d+")]
         public static partial Regex GetIdRegex();
+
+        [GeneratedRegex(@"^\s+$")]
+        public static partial Regex GetEmptyStringRegex();
     }
 }

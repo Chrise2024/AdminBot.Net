@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using System.Drawing;
 using System.Drawing.Imaging;
 using Newtonsoft.Json;
@@ -8,6 +9,7 @@ using ImageMagick.Drawing;
 using AdminBot.Net.NetWork;
 using AdminBot.Net.Utils;
 using AdminBot.Net.Extra;
+using System.Reflection;
 
 namespace AdminBot.Net.Command
 {
@@ -24,6 +26,7 @@ namespace AdminBot.Net.Command
 
         private static readonly List<string> AvaliableCommands = CEConfigManager.GetCommandList();
 
+        private static readonly Assembly CEAssembly = Assembly.GetExecutingAssembly();
         public static async void Execute(ArgSchematics Args)
         {
             if (AvaliableCommands.Contains(Args.Command))
@@ -147,6 +150,73 @@ namespace AdminBot.Net.Command
                         {
                             ExecuteLogger.Error($"Get Hitokoto Failed, At Command <{Args.Command}>");
                             await HttpApi.SendPlainMsg(Args.GroupId, "获取失败");
+                        }
+                    }
+                    else if (Args.Command.Equals("queto"))
+                    {
+                        //ParamFormat: [TargetMsg]
+                        MsgBodySchematics TargetMsg = await HttpApi.GetMsg(Int32.TryParse(Args.Param[0], out int TargetMsgId) ? TargetMsgId : 0);
+                        if ((TargetMsg.MessageId ?? 0) == 0)
+                        {
+                            ExecuteLogger.Error($"Invalid MsgId: {Args.Param[0]}, At Command <{Args.Command}>"); ;
+                            await HttpApi.SendPlainMsg(Args.GroupId, "无效的Msg");
+                        }
+                        else
+                        {
+                            string TargetMsgString = "";
+                            List<JObject> MsgSeq = TargetMsg.Message ?? [];
+                            foreach (JObject index in MsgSeq)
+                            {
+                                if (index.Value<string>("type")?.Equals("text") ?? false)
+                                {
+                                    string TText = index.Value<JObject>("data")?.Value<string>("text") ?? "";
+                                    if (TText.Length != 0 || !RegexProvider.GetEmptyStringRegex().IsMatch(TText))
+                                    {
+                                        TargetMsgString += TText;
+                                    }
+                                }
+                                else if (index.Value<string>("type")?.Equals("at") ?? false)
+                                {
+                                    TargetMsgString += index.Value<JObject>("data")?.Value<string>("name") ?? "@";
+                                }
+                                else
+                                {
+                                    continue;
+                                }
+                            }
+                            long TargetUin = TargetMsg.Sender?.UserId ?? 0;
+                            GroupMemberSchematics CMember = await HttpApi.GetGroupMember(Args.GroupId, TargetUin);
+                            string TargetName = $"@{CMember.Nickname ?? ""}";
+                            string ImCachePath = Path.Join(Program.GetProgramCahce(), $"{DateTime.Now:HH-mm-ss}.png");
+                            Stream? stream = CEAssembly.GetManifestResourceStream("AdminBot.Net.Local.QSplash.png");
+                            if (stream != null)
+                            {
+                                Image CoverImage = Image.FromStream(stream);
+                                Image TargetAvatar = await HttpApi.GetQQAvatar(TargetUin);
+                                Bitmap bg = new(1200, 640);
+                                Graphics g = Graphics.FromImage(bg);
+                                StringFormat format = new()
+                                {
+                                    Alignment = StringAlignment.Center,
+                                    LineAlignment = StringAlignment.Center
+                                };
+                                g.DrawImage(TargetAvatar, 0, 0, 640, 640);
+                                g.DrawImage(CoverImage, 0, 0, 1200, 640);
+                                g.DrawString(TargetMsgString, new Font("msyh", 40, FontStyle.Regular), new SolidBrush(Color.White), new RectangleF(540, 230, 600, 180), format);
+                                g.DrawString(TargetName, new Font("msyh", 24, FontStyle.Regular), new SolidBrush(Color.White), new RectangleF(690, 540, 300, 80), format);
+                                bg.Save(ImCachePath, ImageFormat.Png);
+                                await HttpApi.SendImageMsg(Args.GroupId, ImCachePath, ImageSendType.LocalFile);
+                                FileIO.SafeDeleteFile(ImCachePath);
+                                g.Dispose();
+                                bg.Dispose();
+                                CoverImage.Dispose();
+                                TargetAvatar.Dispose();
+                            }
+                            else
+                            {
+                                ExecuteLogger.Error($"Generate Failed, At Command <{Args.Command}>");
+                                await HttpApi.SendPlainMsg(Args.GroupId, "生成失败");
+                            }
                         }
                     }
                     else if (Args.Command.Equals("titleself"))

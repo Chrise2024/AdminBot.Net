@@ -12,6 +12,7 @@ namespace AdminBot.Net.Utils
             "help",
             "symmet",
             "hito",
+            "queto",
             "titleself",
             "permission",
             "listop",
