@@ -26,7 +26,7 @@ namespace AdminBot.Net.Command
 
         private static readonly List<string> AvaliableCommands = CEConfigManager.GetCommandList();
 
-        private static readonly Assembly CEAssembly = Assembly.GetExecutingAssembly();
+        //private static readonly Assembly CEAssembly = Assembly.GetExecutingAssembly();
         public static async void Execute(ArgSchematics Args)
         {
             if (AvaliableCommands.Contains(Args.Command))
@@ -52,6 +52,7 @@ namespace AdminBot.Net.Command
                             _ = await HelpCommand.PrintHelpText(Args.GroupId, "help");
                         }
                     }
+                    /*
                     else if (Args.Command.Equals("symmet"))
                     {
                         //ParamFormat: [MsgId] [Pattern] or [Pattern] [ImageUrl]
@@ -219,6 +220,7 @@ namespace AdminBot.Net.Command
                             }
                         }
                     }
+                    */
                     else if (Args.Command.Equals("titleself"))
                     {
                         //ParamFormat: [Title]
